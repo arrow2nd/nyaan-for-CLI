@@ -1,5 +1,6 @@
 'use strct';
 
+const fs = require('fs');
 const Twitter = require('twitter');
 const dotenv = require('dotenv');
 
@@ -14,7 +15,7 @@ const client = new Twitter({
     access_token_secret: `${process.env.ACCESS_TOKEN_SECRET}`
 });
 
-//tweetPost('ツイートのテスト！！');
+//tweetPost('複数画像つきツイート', []);
 //showTimeline(10);
 //showUserTimeline('@Arrow_0723_2nd', 2);
 //searchTweet('#petitcom', 2);
@@ -22,9 +23,29 @@ const client = new Twitter({
 /**
  * ツイートする
  * @param {String} tweetText ツイート内容
+ * @param {Array}  paths     添付する画像のパス
  */
-function tweetPost(tweetText){
-    client.post('statuses/update', {status: tweetText}, (err, tweet, res) => {
+async function tweetPost(tweetText, paths){
+    let status = {};
+    let mediaIds = '';
+
+    // テキストを追加
+    status['status'] = tweetText;
+
+    // 画像があればアップロードする
+    if (paths.length){
+        for (let path of paths){
+            const file = fs.readFileSync(path);
+            const media = await client.post('media/upload', {media: file});
+            mediaIds += media.media_id_string + ',';
+        };
+        status['media_ids'] = mediaIds;
+    };
+
+    console.log(status);
+
+    // ツイートする
+    client.post('statuses/update', status, (err, tweet, res) => {
         if (!err) {
             console.log(`ツイートしました！: ${tweetText}`);
         } else {
@@ -32,6 +53,7 @@ function tweetPost(tweetText){
         };
     });
 };
+
 /**
  * 特定ユーザーの投稿（TL）を取得
  * @param {String} userName ＠から始まるユーザーID
