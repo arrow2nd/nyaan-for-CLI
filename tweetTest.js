@@ -16,9 +16,9 @@ const client = new Twitter({
 });
 
 /*
-tweetPost('明日は表示周りを実験したい', [])
+tweetPost('hogehoge', [])
     .catch((err) => {console.error(err)});
- */ 
+*/
 
 //showTimeline(10);
 //showUserTimeline('@Arrow_0723_2nd', 2);
@@ -37,7 +37,7 @@ async function tweetPost(tweetText, paths){
     status['status'] = tweetText;
 
     // 画像があればアップロードする
-    if (paths.length > 3) {
+    if (paths.length > 4) {
         throw new Error('添付画像は4枚までです');
     } else if (paths.length){
         for (filePath of paths){
