@@ -1,10 +1,10 @@
 'use strct';
 
 const fs = require('fs');
-const Twitter = require('twitter');
+const path = require('path');
 const dotenv = require('dotenv');
+const Twitter = require('twitter');
 
-// .envから読み込み
 dotenv.config();
 
 // 認証情報
@@ -15,7 +15,9 @@ const client = new Twitter({
     access_token_secret: `${process.env.ACCESS_TOKEN_SECRET}`
 });
 
-//tweetPost('複数画像つきツイート', []);
+tweetPost('ツイート', ['nyaan.png'])
+    .catch((err) => {console.error(err)});
+
 //showTimeline(10);
 //showUserTimeline('@Arrow_0723_2nd', 2);
 //searchTweet('#petitcom', 2);
@@ -34,10 +36,22 @@ async function tweetPost(tweetText, paths){
 
     // 画像があればアップロードする
     if (paths.length){
-        for (let path of paths){
-            const file = fs.readFileSync(path);
-            const media = await client.post('media/upload', {media: file});
-            mediaIds += media.media_id_string + ',';
+        for (let filePath of paths){
+            // 画像があるか確認
+            try {
+                fs.statSync(filePath);
+            } catch(err) {
+                throw new Error('ファイルが見つかりません');
+            };
+            // 拡張子を確認
+            const ext = path.extname(filePath).toLowerCase();
+            if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif'){
+                const file = fs.readFileSync(filePath);
+                const media = await client.post('media/upload', {media: file});
+                mediaIds += media.media_id_string + ',';
+            } else {
+                throw new Error('未対応の拡張子です');
+            };
         };
         status['media_ids'] = mediaIds;
     };
@@ -48,9 +62,11 @@ async function tweetPost(tweetText, paths){
     client.post('statuses/update', status, (err, tweet, res) => {
         if (!err) {
             console.log(`ツイートしました！: ${tweetText}`);
-        } else {
-            console.error(err);
-        };
+        }
+        else {
+            throw new Error('ツイートに失敗しました');
+        }
+        ;
     });
 };
 
@@ -60,12 +76,14 @@ async function tweetPost(tweetText, paths){
  * @param {Number} count    取得件数（最大200件）
  */
 function showUserTimeline(userName, count){
-    client.get('statuses/user_timeline', {screen_name: userName, count: count}, (err, tweets, res) => {
+    client.get('statuses/user_timeline', { screen_name: userName, count: count }, (err, tweets, res) => {
         if (!err) {
             console.log(tweets);
-        } else {
+        }
+        else {
             console.error(err);
-        };
+        }
+        ;
     });
 };
 
