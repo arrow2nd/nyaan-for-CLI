@@ -1,0 +1,12 @@
+{
+  "name": "mum",
+  "version": "1.0.0",
+  "description": "コマンドライン上で動くシンプルなTwitterクライアント",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^5.1.0",
+    "request": "^2.88.2"
+  }
+}
