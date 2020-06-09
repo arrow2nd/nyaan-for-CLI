@@ -15,8 +15,10 @@ const client = new Twitter({
     access_token_secret: `${process.env.ACCESS_TOKEN_SECRET}`
 });
 
-tweetPost('ツイート', ['nyaan.png'])
+
+tweetPost('ツイート', [])
     .catch((err) => {console.error(err)});
+ 
 
 //showTimeline(10);
 //showUserTimeline('@Arrow_0723_2nd', 2);
@@ -36,7 +38,10 @@ async function tweetPost(tweetText, paths){
 
     // 画像があればアップロードする
     if (paths.length){
-        for (let filePath of paths){
+        paths.forEach((filePath, index) => {
+            if (index > 3){
+                return;
+            };
             // 画像があるか確認
             try {
                 fs.statSync(filePath);
@@ -52,7 +57,7 @@ async function tweetPost(tweetText, paths){
             } else {
                 throw new Error('未対応の拡張子です');
             };
-        };
+        });
         status['media_ids'] = mediaIds;
     };
 
@@ -62,11 +67,9 @@ async function tweetPost(tweetText, paths){
     client.post('statuses/update', status, (err, tweet, res) => {
         if (!err) {
             console.log(`ツイートしました！: ${tweetText}`);
-        }
-        else {
+        } else {
             throw new Error('ツイートに失敗しました');
-        }
-        ;
+        };
     });
 };
 
@@ -79,11 +82,9 @@ function showUserTimeline(userName, count){
     client.get('statuses/user_timeline', { screen_name: userName, count: count }, (err, tweets, res) => {
         if (!err) {
             console.log(tweets);
-        }
-        else {
+        } else {
             console.error(err);
-        }
-        ;
+        };
     });
 };
 
