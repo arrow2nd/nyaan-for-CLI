@@ -15,10 +15,10 @@ const client = new Twitter({
     access_token_secret: `${process.env.ACCESS_TOKEN_SECRET}`
 });
 
-
-tweetPost('ツイート', [])
+/*
+tweetPost('明日は表示周りを実験したい', [])
     .catch((err) => {console.error(err)});
- 
+ */ 
 
 //showTimeline(10);
 //showUserTimeline('@Arrow_0723_2nd', 2);
@@ -37,11 +37,10 @@ async function tweetPost(tweetText, paths){
     status['status'] = tweetText;
 
     // 画像があればアップロードする
-    if (paths.length){
-        paths.forEach((filePath, index) => {
-            if (index > 3){
-                return;
-            };
+    if (paths.length > 3) {
+        throw new Error('添付画像は4枚までです');
+    } else if (paths.length){
+        for (filePath of paths){
             // 画像があるか確認
             try {
                 fs.statSync(filePath);
@@ -57,7 +56,7 @@ async function tweetPost(tweetText, paths){
             } else {
                 throw new Error('未対応の拡張子です');
             };
-        });
+        };
         status['media_ids'] = mediaIds;
     };
 
