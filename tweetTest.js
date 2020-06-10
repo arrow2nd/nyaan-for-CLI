@@ -88,7 +88,12 @@ async function tweetPost(tweetText, paths){
  * @param {Number} count    取得件数（最大200件）
  */
 function showUserTimeline(userName, count){
-    client.get('statuses/user_timeline', { screen_name: userName, count: count }, (err, tweets, res) => {
+    const param = {
+        screen_name: userName,
+        count: count,
+        exclude_replies: true
+    };
+    client.get('statuses/user_timeline', param, (err, tweets, res) => {
         if (!err) {
             console.log(tweets);
         } else {
@@ -102,7 +107,7 @@ function showUserTimeline(userName, count){
  * @param {Number} count 取得件数（最大200件）
  */
 function showTimeline(count){
-    client.get('statuses/home_timeline', {count: count}, (err, tweets, res) => {
+    client.get('statuses/home_timeline', {count: count, exclude_replies: true}, (err, tweets, res) => {
         if (!err) {
             console.log(tweets);
         } else {
