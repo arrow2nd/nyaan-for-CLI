@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const Twitter = require('twitter');
+const colors = require('colors');
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ const client = new Twitter({
 });
 
 /*
-tweetPost('hogehoge', [])
+tweetPost('変な天気', [])
     .catch((err) => {console.error(err)});
 */
 
@@ -45,16 +46,25 @@ async function tweetPost(tweetText, paths){
             try {
                 fs.statSync(filePath);
             } catch(err) {
-                throw new Error('ファイルが見つかりません');
+                console.error(`ファイルが見つかりません(${filePath})`.brightRed);
+                continue;
             };
             // 拡張子を確認
             const ext = path.extname(filePath).toLowerCase();
             if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif'){
                 const file = fs.readFileSync(filePath);
-                const media = await client.post('media/upload', {media: file});
+                let media;
+                // アップロード
+                try {
+                    media = await client.post('media/upload', {media: file});
+                } catch(err) {
+                    console.error(`アップロードに失敗しました(${filePath})`.brightRed);
+                    continue;
+                };
                 mediaIds += media.media_id_string + ',';
             } else {
-                throw new Error('未対応の拡張子です');
+                console.error(`未対応の拡張子です(${ext})`.brightRed);
+                continue;
             };
         };
         status['media_ids'] = mediaIds;
@@ -65,7 +75,7 @@ async function tweetPost(tweetText, paths){
     // ツイートする
     client.post('statuses/update', status, (err, tweet, res) => {
         if (!err) {
-            console.log(`ツイートしました！: ${tweetText}`);
+            console.log(`ツイートしました！: ${tweetText}`.cyan);
         } else {
             throw new Error('ツイートに失敗しました');
         };
