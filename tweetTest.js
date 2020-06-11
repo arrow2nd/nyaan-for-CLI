@@ -149,6 +149,7 @@ function searchTweet(query, count){
  */
 function showTweet(tweets){
     const width = process.stdout.columns;
+    process.stdout.write('-'.repeat(width) + '\n');
 
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
@@ -178,6 +179,14 @@ function showTweet(tweets){
 
         // 投稿内容
         let postText = emoji.strip(tweet.text);
+        //  メンションをハイライト
+        const mentions = tweet.entities.user_mentions;
+        if (mentions){
+            for (let mention of mentions){
+                const mentionId = `@${mention.screen_name}`;
+                postText = postText.replace(mentionId, mentionId.brightCyan);
+            };
+        };
         // ハッシュタグをハイライト
         const hashtags = tweet.entities.hashtags;
         if (hashtags){
@@ -194,7 +203,7 @@ function showTweet(tweets){
         if (favCount){
             favText = `fav: ${favCount} `;
             textCount += favText.length;
-            favText = (tweet.favorited) ? favText.bold.brightMagenta : favText.brightMagenta;
+            favText = (tweet.favorited) ? favText.magenta : favText.brightMagenta;
         };
         // RT
         const rtCount = tweet.retweet_count;
@@ -202,7 +211,7 @@ function showTweet(tweets){
         if (rtCount){
             rtText = `RT: ${rtCount} `;
             textCount += rtText.length;
-            rtText= (tweet.retweeted) ? rtText.bold.bgBrightGreen : rtText.brightGreen;
+            rtText= (tweet.retweeted) ? rtText.green : rtText.brightGreen;
         };
         // via
         const start = tweet.source.indexOf('>') + 1;
@@ -217,13 +226,13 @@ function showTweet(tweets){
         const fotter = ' '.repeat(width - (textCount + 3)) + `${favText}${rtText} ${postTime} ${via}`;
 
         // 表示
-        process.stdout.write('-'.repeat(width) + '\n');
         if (rtByUser){
             process.stdout.write(rtByUser.green + '\n');
         };
         process.stdout.write(header + '\n\n');
         process.stdout.write(postText + '\n\n');
         process.stdout.write(fotter + '\n');
+        process.stdout.write('-'.repeat(width) + '\n');
     };
 };
 
