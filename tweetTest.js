@@ -120,7 +120,6 @@ function getUserTimeline(userName, count){
     };
     client.get('statuses/user_timeline', param, (err, tweets, res) => {
         if (!err) {
-//            console.log(tweets);
             showTweet(tweets);
         } else {
             console.error(err);
@@ -174,7 +173,7 @@ function showTweet(tweets){
             badge = ' [private]'.gray;
         };
         // ヘッダー
-        const index = `${i}: `;
+        const index = `${i}:  `;
         const header = index + userName.bold + userId.dim + badge;
 
         // 投稿内容
