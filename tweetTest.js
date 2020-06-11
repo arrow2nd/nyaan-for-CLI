@@ -5,6 +5,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 const Twitter = require('twitter');
 const colors = require('colors');
+const moment = require('moment');
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ tweetPost('変な天気', [])
     .catch((err) => {console.error(err)});
 */
 
-//showTimeline(10);
+getTimeline(5);
 //showUserTimeline('@Arrow_0723_2nd', 2);
 //searchTweet('#petitcom', 2);
 
@@ -83,6 +84,21 @@ async function tweetPost(tweetText, paths){
 };
 
 /**
+ * TLを取得
+ * @param {Number} count 取得件数（最大200件）
+ */
+function getTimeline(count){
+    client.get('statuses/home_timeline', {count: count, exclude_replies: false}, (err, tweets, res) => {
+        if (!err) {
+            console.log(tweets);
+            showTweet(tweets);
+        } else {
+            console.error(err);
+        };
+    });
+};
+
+/**
  * 特定ユーザーの投稿（TL）を取得
  * @param {String} userName ＠から始まるユーザーID
  * @param {Number} count    取得件数（最大200件）
@@ -91,23 +107,9 @@ function showUserTimeline(userName, count){
     const param = {
         screen_name: userName,
         count: count,
-        exclude_replies: true
+        exclude_replies: false
     };
     client.get('statuses/user_timeline', param, (err, tweets, res) => {
-        if (!err) {
-            console.log(tweets);
-        } else {
-            console.error(err);
-        };
-    });
-};
-
-/**
- * TLを取得
- * @param {Number} count 取得件数（最大200件）
- */
-function showTimeline(count){
-    client.get('statuses/home_timeline', {count: count, exclude_replies: true}, (err, tweets, res) => {
         if (!err) {
             console.log(tweets);
         } else {
@@ -129,4 +131,81 @@ function searchTweet(query, count){
             console.error(err);
         };
     });
+};
+
+/**
+ * ツイートを表示
+ * @param {Object} tweets ツイートオブジェクト
+ */
+function showTweet(tweets){
+    const width = process.stdout.columns;
+
+    // 末尾から読み込み
+    for (let i = tweets.length - 1;i >= 0;i--){
+        let tweet = tweets[i];
+        let rtByUser;
+
+        // 公式RTだった場合、RT元のツイートに置き換える
+        if (tweet.retweeted_status){
+            rtByUser = `${tweet.user.name} (@${tweet.user.screen_name})`;
+            tweet = tweet.retweeted_status;
+        };
+
+        // ユーザー情報
+        let user = `${tweet.user.name} (@${tweet.user.screen_name})`;
+        // 鍵アカウント
+        if (tweet.user.protected) {
+            user += '[private]'.gray;
+        };
+        // 認証済みアカウント
+        if (tweet.user.verified){
+            user += '[verified]'.brightGreen;
+        };
+
+        // 投稿情報
+        const postTime = moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss');
+        let text = tweet.text;
+        const favCount = tweet.favorite_count;
+        const rtCount = tweet.retweet_count;
+        const favorited = tweet.favorited;
+        const retweeted = tweet.retweeted;
+
+        // via
+        const start = tweet.source.indexOf('>') + 1;
+        const end = tweet.source.indexOf('</a>');
+        const via = tweet.source.slice(start, end);
+
+        // 表示
+        console.log(i);
+        console.log(postTime);
+        console.log(user);
+        console.log(text);
+        console.log(favCount);
+        console.log(rtCount);
+        console.log(favorited);
+        console.log(retweeted);
+        console.log(via);
+
+        console.log(rtByUser);
+
+        console.log('\n');
+    };
+};
+
+/**
+ * 文字列の表示幅を取得
+ * @param  {String} text テキスト
+ * @return {Number}      半角文字での表示幅
+ */
+function getStrWidth(text){
+    let len = 0;
+    for (let i = 0;i < text.length;i++){
+        const value = text[i];
+        if (!value.match(/[^\x01-\x7E]/) || !value.match(/[^\uFF65-\uFF9F]/)) {
+            len ++;
+        } else {
+            len += 2;
+        };
+    };
+    return len;
 };

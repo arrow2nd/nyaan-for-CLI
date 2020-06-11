@@ -17,7 +17,7 @@ program
     .command('tweet <text>')
     .alias('tw')
     .description('そのままツイートします 文中にスペースを使う場合は"で囲んで下さい！')
-    .option('-m, --media <path>', '画像/動画を添付します 複数ある場合は,で区切って下さい')
+    .option('-m, --media <path>', '画像を添付します 複数ある場合は,で区切って下さい')
     .action((text, options) => {
         const path = options.media || '';
         tweetPost(text, path);
