@@ -7,6 +7,8 @@ const Twitter = require('twitter');
 const colors = require('colors');
 const moment = require('moment');
 
+const emoji = require('node-emoji');0
+
 dotenv.config();
 
 // 認証情報
@@ -22,8 +24,8 @@ tweetPost('変な天気', [])
     .catch((err) => {console.error(err)});
 */
 
-getTimeline(5);
-//showUserTimeline('@Arrow_0723_2nd', 2);
+getTimeline(10);
+//getUserTimeline('@Arrow_0723_2nd', 10);
 //searchTweet('#petitcom', 2);
 
 /**
@@ -88,9 +90,14 @@ async function tweetPost(tweetText, paths){
  * @param {Number} count 取得件数（最大200件）
  */
 function getTimeline(count){
-    client.get('statuses/home_timeline', {count: count, exclude_replies: false}, (err, tweets, res) => {
+    const param = {
+        count: count,
+        exclude_replies: false,
+        include_rts: false
+    };
+    client.get('statuses/home_timeline', param, (err, tweets, res) => {
         if (!err) {
-            console.log(tweets);
+//            console.log(tweets);
             showTweet(tweets);
         } else {
             console.error(err);
@@ -103,7 +110,7 @@ function getTimeline(count){
  * @param {String} userName ＠から始まるユーザーID
  * @param {Number} count    取得件数（最大200件）
  */
-function showUserTimeline(userName, count){
+function getUserTimeline(userName, count){
     const param = {
         screen_name: userName,
         count: count,
@@ -111,7 +118,8 @@ function showUserTimeline(userName, count){
     };
     client.get('statuses/user_timeline', param, (err, tweets, res) => {
         if (!err) {
-            console.log(tweets);
+//            console.log(tweets);
+            showTweet(tweets);
         } else {
             console.error(err);
         };
@@ -139,56 +147,65 @@ function searchTweet(query, count){
  */
 function showTweet(tweets){
     const width = process.stdout.columns;
-
-    // 末尾から読み込み
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
         let rtByUser;
 
         // 公式RTだった場合、RT元のツイートに置き換える
         if (tweet.retweeted_status){
-            rtByUser = `${tweet.user.name} (@${tweet.user.screen_name})`;
+            rtByUser = `RT by ${emoji.strip(tweet.user.name)} (@${tweet.user.screen_name})`;
             tweet = tweet.retweeted_status;
         };
 
         // ユーザー情報
-        let user = `${tweet.user.name} (@${tweet.user.screen_name})`;
-        // 鍵アカウント
-        if (tweet.user.protected) {
-            user += '[private]'.gray;
-        };
+        let user = `${emoji.strip(tweet.user.name)} (@${tweet.user.screen_name})`;
         // 認証済みアカウント
         if (tweet.user.verified){
             user += '[verified]'.brightGreen;
         };
-
-        // 投稿情報
+        // 鍵アカウント
+        if (tweet.user.protected) { 
+            user += '[private]'.gray;
+        };
+        // ヘッダー
         const postTime = moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss');
-        let text = tweet.text;
+        const header = user + '  ' + postTime;
+
+        // 投稿内容
+        let postText = emoji.strip(tweet.text);
+        // ハッシュタグをハイライト
+        const hashtags = tweet.entities.hashtags;
+        if (hashtags){
+            for (let tag of hashtags){
+                const tagText = `#${tag.text}`;
+                postText = postText.replace(tagText, tagText.brightCyan);
+            };
+        };
+
+        // いいね＆リツイート
         const favCount = tweet.favorite_count;
+        const favText = `fav: ${favCount}`;
+//        const favText = (tweet.favorited) ? `fav: ${favCount}`.brightMagenta : `fav: ${favCount}`;
         const rtCount = tweet.retweet_count;
-        const favorited = tweet.favorited;
-        const retweeted = tweet.retweeted;
+        const rtText = `RT: ${rtCount}`;
+//        const rtText = (tweet.retweeted) ? `RT: ${rtCount}`.bgBrightBlue : `RT: ${rtCount}`;
+        const reaction = `${favText}  ${rtText}`;
 
         // via
         const start = tweet.source.indexOf('>') + 1;
         const end = tweet.source.indexOf('</a>');
-        const via = tweet.source.slice(start, end);
+        const detals = `${reaction}  via ${tweet.source.slice(start, end)}`;
+        const fotter = ' '.repeat(width - getStrWidth(detals)) + detals;
 
         // 表示
-        console.log(i);
-        console.log(postTime);
-        console.log(user);
-        console.log(text);
-        console.log(favCount);
-        console.log(rtCount);
-        console.log(favorited);
-        console.log(retweeted);
-        console.log(via);
-
-        console.log(rtByUser);
-
-        console.log('\n');
+        const index = `[index: ${i}]`;
+        process.stdout.write(index + '-'.repeat(width - index.length) + '\n');
+        if (rtByUser){
+            process.stdout.write(rtByUser.green + '\n');
+        };
+        process.stdout.write(header.brightGreen + '\n\n');
+        process.stdout.write(postText + '\n');
+        process.stdout.write(fotter + '\n');
     };
 };
 
@@ -199,8 +216,7 @@ function showTweet(tweets){
  */
 function getStrWidth(text){
     let len = 0;
-    for (let i = 0;i < text.length;i++){
-        const value = text[i];
+    for (let value of text){
         if (!value.match(/[^\x01-\x7E]/) || !value.match(/[^\uFF65-\uFF9F]/)) {
             len ++;
         } else {
