@@ -173,7 +173,7 @@ function showTweet(tweets){
             badge = ' [private]'.gray;
         };
         // ヘッダー
-        const index = `${i}:  `;
+        const index = `${i}: `;
         const header = index + userName.bold + userId.dim + badge;
 
         // 投稿内容
@@ -200,17 +200,17 @@ function showTweet(tweets){
         const favCount = tweet.favorite_count;
         let favText = '';
         if (favCount){
-            favText = `fav: ${favCount} `;
+            favText = `fav: ${favCount}`;
             textCount += favText.length;
-            favText = (tweet.favorited) ? favText.magenta : favText.brightMagenta;
+            favText = (tweet.favorited) ? `${favText.black.bgBrightMagenta} ` : `${favText.brightMagenta} `;
         };
         // RT
         const rtCount = tweet.retweet_count;
         let rtText = '';
         if (rtCount){
-            rtText = `RT: ${rtCount} `;
+            rtText = `RT: ${rtCount}`;
             textCount += rtText.length;
-            rtText= (tweet.retweeted) ? rtText.green : rtText.brightGreen;
+            rtText= (tweet.retweeted) ? `${rtText.black.bgBrightGreen}` : `${rtText.brightGreen}`;
         };
         // via
         const start = tweet.source.indexOf('>') + 1;
