@@ -93,14 +93,16 @@ function getTimeline(count){
     const param = {
         count: count,
         exclude_replies: false,
-        include_rts: false
     };
     client.get('statuses/home_timeline', param, (err, tweets, res) => {
         if (!err) {
-//            console.log(tweets);
             showTweet(tweets);
         } else {
-            console.error(err);
+            if (err[0].code == 88){
+                console.error('読み込み回数の制限に達しました'.brightRed);
+            } else {
+                console.error(`Error: ${err}`.brightRed);
+            };
         };
     });
 };
@@ -147,6 +149,7 @@ function searchTweet(query, count){
  */
 function showTweet(tweets){
     const width = process.stdout.columns;
+
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
         let rtByUser;
@@ -158,18 +161,20 @@ function showTweet(tweets){
         };
 
         // ユーザー情報
-        let user = `${emoji.strip(tweet.user.name)} (@${tweet.user.screen_name})`;
+        const userName = emoji.strip(tweet.user.name);
+        const userId = `  @${tweet.user.screen_name}`;
+        let badge = '';
         // 認証済みアカウント
         if (tweet.user.verified){
-            user += '[verified]'.brightGreen;
+            badge = ' [verified]'.cyan;
         };
         // 鍵アカウント
-        if (tweet.user.protected) { 
-            user += '[private]'.gray;
+        if (tweet.user.protected) {
+            badge = ' [private]'.gray;
         };
         // ヘッダー
-        const postTime = moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss');
-        const header = user + '  ' + postTime;
+        const index = `${i}: `;
+        const header = index + userName.bold + userId.dim + badge;
 
         // 投稿内容
         let postText = emoji.strip(tweet.text);
@@ -182,29 +187,42 @@ function showTweet(tweets){
             };
         };
 
-        // いいね＆リツイート
+        // いいね!
+        let textCount = 0;
         const favCount = tweet.favorite_count;
-        const favText = `fav: ${favCount}`;
-//        const favText = (tweet.favorited) ? `fav: ${favCount}`.brightMagenta : `fav: ${favCount}`;
+        let favText = '';
+        if (favCount){
+            favText = `fav: ${favCount} `;
+            textCount += favText.length;
+            favText = (tweet.favorited) ? favText.bold.brightMagenta : favText.brightMagenta;
+        };
+        // RT
         const rtCount = tweet.retweet_count;
-        const rtText = `RT: ${rtCount}`;
-//        const rtText = (tweet.retweeted) ? `RT: ${rtCount}`.bgBrightBlue : `RT: ${rtCount}`;
-        const reaction = `${favText}  ${rtText}`;
-
+        let rtText = '';
+        if (rtCount){
+            rtText = `RT: ${rtCount} `;
+            textCount += rtText.length;
+            rtText= (tweet.retweeted) ? rtText.bold.bgBrightGreen : rtText.brightGreen;
+        };
         // via
         const start = tweet.source.indexOf('>') + 1;
         const end = tweet.source.indexOf('</a>');
-        const detals = `${reaction}  via ${tweet.source.slice(start, end)}`;
-        const fotter = ' '.repeat(width - getStrWidth(detals)) + detals;
+        let via = ` via ${tweet.source.slice(start, end)}`;
+        textCount += getStrWidth(via);
+        via = via.brightBlue;
+        // フッター
+        let postTime = moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss');
+        textCount += postTime.length;
+        postTime = postTime.dim;
+        const fotter = ' '.repeat(width - (textCount + 3)) + `${favText}${rtText} ${postTime} ${via}`;
 
         // 表示
-        const index = `[index: ${i}]`;
-        process.stdout.write(index + '-'.repeat(width - index.length) + '\n');
+        process.stdout.write('-'.repeat(width) + '\n');
         if (rtByUser){
             process.stdout.write(rtByUser.green + '\n');
         };
-        process.stdout.write(header.brightGreen + '\n\n');
-        process.stdout.write(postText + '\n');
+        process.stdout.write(header + '\n\n');
+        process.stdout.write(postText + '\n\n');
         process.stdout.write(fotter + '\n');
     };
 };
