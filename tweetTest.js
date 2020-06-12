@@ -23,7 +23,6 @@ const client = new Twitter({
 tweetPost('変な天気', [])
     .catch((err) => {console.error(err)});
 */
-
 getTimeline(10);
 //getUserTimeline('@Arrow_0723_2nd', 10);
 //searchTweet('#petitcom', 2);
@@ -173,11 +172,13 @@ function showTweet(tweets){
             badge = ' [private]'.gray;
         };
         // ヘッダー
-        const index = `${i}: `;
-        const header = index + userName.bold + userId.dim + badge;
+        const index = ` ${i}:`;
+        const header = index.black.bgWhite + ' ' + userName.bold + userId.gray + badge;
 
         // 投稿内容
         let postText = emoji.strip(tweet.text);
+        // 全角スペースを置換
+        postText = postText.replace(/　/g, '  ');
         //  メンションをハイライト
         const mentions = tweet.entities.user_mentions;
         if (mentions){
@@ -201,7 +202,7 @@ function showTweet(tweets){
         let favText = '';
         if (favCount){
             favText = `fav: ${favCount}`;
-            textCount += favText.length;
+            textCount += favText.length + 1;
             favText = (tweet.favorited) ? `${favText.black.bgBrightMagenta} ` : `${favText.brightMagenta} `;
         };
         // RT
@@ -209,22 +210,20 @@ function showTweet(tweets){
         let rtText = '';
         if (rtCount){
             rtText = `RT: ${rtCount}`;
-            textCount += rtText.length;
-            rtText= (tweet.retweeted) ? `${rtText.black.bgBrightGreen}` : `${rtText.brightGreen}`;
+            textCount += rtText.length + 1;
+            rtText= (tweet.retweeted) ? `${rtText.black.bgBrightGreen} ` : `${rtText.brightGreen} `;
         };
         // via
         const start = tweet.source.indexOf('>') + 1;
         const end = tweet.source.indexOf('</a>');
-        let via = ` via ${tweet.source.slice(start, end)}`;
+        let via = `  via ${tweet.source.slice(start, end)}`;
         textCount += getStrWidth(via);
-        via = via.brightBlue;
         // フッター
-        let postTime = moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss');
+        let postTime = ` ${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}`;
         textCount += postTime.length;
-        postTime = postTime.dim;
-        const fotter = ' '.repeat(width - (textCount + 3)) + `${favText}${rtText} ${postTime} ${via}`;
+        const fotter = ' '.repeat(width - textCount) + favText + rtText + postTime.grey + via.gray;
 
-        // 表示
+        // 表示する
         if (rtByUser){
             process.stdout.write(rtByUser.green + '\n');
         };
