@@ -21,9 +21,9 @@ const client = new Twitter({
 
 
 //tweetPost('test', ['nyaan.png']).catch((err) => {console.error(err)});
-//getTimeline(10);
-getUserTimeline('@UN_NERV', 5);
-//searchTweet('#petitcom', 2);
+//getTimeline(20);
+//getUserTimeline('', 5);
+//searchTweet('apple', 10);
 
 
 /**
@@ -72,14 +72,12 @@ async function tweetPost(tweetText, paths){
         status.media_ids = mediaIds;
     };
 
-    console.log(status);
-
     // ツイートする
     client.post('statuses/update', status, (err, tweet, res) => {
         if (!err) {
             console.log(`ツイートしました！: ${tweetText}`.cyan);
         } else {
-            throw new Error('ツイートに失敗しました');
+            showErrorMsg(err);
         };
     });
 };
@@ -97,23 +95,19 @@ function getTimeline(count){
         if (!err) {
             showTweet(tweets);
         } else {
-            if (err[0].code == 88){
-                console.error('読み込み回数の制限に達しました'.brightRed);
-            } else {
-                console.error(`Error: ${err}`.brightRed);
-            };
+            showErrorMsg(err);
         };
     });
 };
 
 /**
  * 特定ユーザーの投稿（TL）を取得
- * @param {String} userName ＠から始まるユーザーID
+ * @param {String} userName ユーザーID
  * @param {Number} count    取得件数（最大200件）
  */
 function getUserTimeline(userName, count){
     const param = {
-        screen_name: userName,
+        screen_name: '@' + userName,
         count: count,
         exclude_replies: false
     };
@@ -122,7 +116,7 @@ function getUserTimeline(userName, count){
             showUserInfo(tweets[0].user);
             showTweet(tweets);
         } else {
-            console.error(err);
+            showErrorMsg(err);
         };
     });
 };
@@ -135,11 +129,36 @@ function getUserTimeline(userName, count){
 function searchTweet(query, count){
     client.get('search/tweets', {q: query + ' exclude:retweets', count: count}, (err, tweets, res) => {
         if (!err){
-            console.log(tweets);
+            showTweet(tweets.statuses);
         } else {
-            console.error(err);
+            showErrorMsg(err);
         };
     });
+};
+
+/**
+ * エラー内容を表示
+ * @param {Object} error エラーオブジェクト
+ */
+function showErrorMsg(error){
+    const err = {
+        32: '処理を完了できませんでした',
+        34: '見つかりませんでした',
+        64: 'アカウントが凍結されています',
+        88: '読み込み回数の制限に達しました',
+        130: '現在Twitterへのアクセスが集中しています',
+        131: 'Twitter側で不明なエラーが発生しました',
+        161: 'フォローに失敗しました',
+        179: 'ツイートを閲覧できません',
+        185: '投稿回数の制限に達しました',
+        187: 'ツイートが重複しています'
+    };
+    const code = error[0].code;
+    let msg = err[code];
+    if (!msg){
+        msg = error[0].message;
+    };
+    console.log(`Error: ${msg}(${code})`.brightRed);
 };
 
 /**
@@ -300,6 +319,7 @@ function showUserInfo(user){
     if (user.following){
         follower = `${follower} ${'[following]'.cyan}`;
     };
+
     // 表示する
     process.stdout.write(`${'='.repeat(width)}\n\n`.rainbow);
     process.stdout.write(`  ${userName}  ${tweetCount.brightCyan}\n\n`);
