@@ -189,32 +189,6 @@ function searchTweet(query, count){
 };
 
 /**
- * エラー内容を表示
- * @param {Object} error エラーオブジェクト
- */
-function showErrorMsg(error){
-    const err = {
-        32: '処理を完了できませんでした',
-        34: '見つかりませんでした',
-        64: 'アカウントが凍結されています',
-        88: '読み込み回数の制限に達しました',
-        130: '現在Twitterへのアクセスが集中しています',
-        131: 'Twitter側で不明なエラーが発生しました',
-        144: '該当するツイートが見つかりませんでした',
-        161: 'フォローに失敗しました',
-        179: 'ツイートを閲覧する権限がありません',
-        185: '投稿回数の制限に達しました',
-        187: 'ツイートが重複しています'
-    };
-    const code = error[0].code;
-    let msg = err[code];
-    if (!msg){
-        msg = error[0].message;
-    };
-    console.log(`Error: ${msg}(${code})`.brightRed);
-};
-
-/**
  * ツイートを表示
  * @param {Object} tweets ツイートオブジェクト
  */
@@ -447,4 +421,30 @@ function optimizeText(text){
     text = text.replace(/\n/g, ' ');
     text = emoji.strip(text);
     return text;
+};
+
+/**
+ * エラー内容を表示
+ * @param {Object} error エラーオブジェクト
+ */
+function showErrorMsg(error){
+    const err = {
+        32: '処理を完了できませんでした',
+        34: '見つかりませんでした',
+        64: 'アカウントが凍結されています',
+        88: '読み込み回数の制限に達しました',
+        130: '現在Twitterへのアクセスが集中しています',
+        131: 'Twitter側で不明なエラーが発生しました',
+        144: '該当するツイートが見つかりませんでした',
+        161: 'フォローに失敗しました',
+        179: 'ツイートを閲覧する権限がありません',
+        185: '投稿回数の制限に達しました',
+        187: 'ツイートが重複しています'
+    };
+    const code = error[0].code;
+    let msg = err[code];
+    if (!msg){
+        msg = error[0].message;
+    };
+    console.log(`Error: ${msg}(${code})`.brightRed);
 };
