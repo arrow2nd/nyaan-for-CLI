@@ -24,8 +24,8 @@ tweetPost('変な天気', [])
     .catch((err) => {console.error(err)});
 */
 
-//getTimeline(10);
-getUserTimeline('@m_mic_0707', 5);
+getTimeline(10);
+//getUserTimeline('', 5);
 //searchTweet('#petitcom', 2);
 
 
@@ -97,8 +97,7 @@ function getTimeline(count){
     };
     client.get('statuses/home_timeline', param, (err, tweets, res) => {
         if (!err) {
-            showUserInfo(tweets[0].user);
-//            showTweet(tweets);
+            showTweet(tweets);
         } else {
             if (err[0].code == 88){
                 console.error('読み込み回数の制限に達しました'.brightRed);
@@ -155,119 +154,172 @@ function showTweet(tweets){
 
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
-        let rtByUser;
 
         // 公式RTだった場合、RT元のツイートに置き換える
+        let rtByUser;
         if (tweet.retweeted_status){
             rtByUser = `RT by ${optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;
             tweet = tweet.retweeted_status;
         };
 
-        // ユーザー情報
-        const userName = optimizeText(tweet.user.name);
-        const userId = `  @${tweet.user.screen_name}`;
-        let badge = '';
-        // 認証済みアカウント
-        if (tweet.user.verified){
-            badge = ' [verified]'.cyan;
-        };
-        // 鍵アカウント
-        if (tweet.user.protected) {
-            badge = ' [private]'.gray;
-        };
         // ヘッダー
-        const index = ` ${i}:`;
-        const header = index.black.bgWhite + ' ' + userName.bold + userId.gray + badge;
+        const header = createHeader(tweet, i);
 
         // 投稿内容
-        let postText = optimizeText(tweet.text);
-        //  メンションをハイライト
-        const mentions = tweet.entities.user_mentions;
-        if (mentions){
-            for (let mention of mentions){
-                const mentionId = `@${mention.screen_name}`;
-                postText = postText.replace(mentionId, mentionId.brightCyan);
-            };
-        };
-        // ハッシュタグをハイライト
-        const hashtags = tweet.entities.hashtags;
-        if (hashtags){
-            for (let tag of hashtags){
-                const tagText = `#${tag.text}`;
-                postText = postText.replace(tagText, tagText.brightCyan);
-            };
-        };
+        const postText = createTweet(tweet);
 
-        // いいね!
-        let textCount = 0;
-        const favCount = tweet.favorite_count;
-        let favText = '';
-        if (favCount){
-            favText = `fav: ${favCount}`;
-            textCount += favText.length + 1;
-            favText = (tweet.favorited) ? `${favText.black.bgBrightMagenta} ` : `${favText.brightMagenta} `;
-        };
-        // RT
-        const rtCount = tweet.retweet_count;
-        let rtText = '';
-        if (rtCount){
-            rtText = `RT: ${rtCount}`;
-            textCount += rtText.length + 1;
-            rtText= (tweet.retweeted) ? `${rtText.black.bgBrightGreen} ` : `${rtText.brightGreen} `;
-        };
-        // via
-        const start = tweet.source.indexOf('>') + 1;
-        const end = tweet.source.indexOf('</a>');
-        let via = `  via ${tweet.source.slice(start, end)}`;
-        textCount += getStrWidth(via);
         // フッター
-        let postTime = ` ${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}`;
-        textCount += postTime.length;
-        const fotter = ' '.repeat(width - textCount) + favText + rtText + postTime.grey + via.gray;
+        const fotter = createFotter(tweet);
 
         // 表示する
         if (rtByUser){
             process.stdout.write(rtByUser.green + '\n');
         };
         process.stdout.write(header + '\n\n');
-        process.stdout.write(postText + '\n\n');
+        process.stdout.write(postText + '\n');
         process.stdout.write(fotter + '\n');
         process.stdout.write('-'.repeat(width) + '\n');
     };
 };
 
+/**
+ * ヘッダーを作成
+ * @param  {Object} tweet ツイートオブジェクト
+ * @param  {Number} index ツイートのインデックス
+ * @return {String}       ヘッダー
+ */
+function createHeader(tweet, index){
+    // ユーザー情報
+    const userName = optimizeText(tweet.user.name);
+    const userId = `  @${tweet.user.screen_name}`;
+    // 公式・鍵アカウント
+    const badge = (
+            (tweet.user.verified) ? ' [verified]'.cyan
+        : (tweet.user.protected) ? ' [private]'.gray
+        : ''
+    );
+    // ヘッダー
+    const header = ` ${index}:`.black.bgWhite + ' ' + userName.bold + userId.gray + badge;
+    return header;
+};
 
+/**
+ * ツイート内容を見やすい形に成形する
+ * @param  {Object} tweet ツイートオブジェクト
+ * @return {String}       ツイート内容
+ */
+function createTweet(tweet){
+    const width = process.stdout.columns;
+    const post = tweet.text;
+    let result = '';
+    // 改行で分割
+    let posts = post.split('\n');
+    // 見やすい形に成形
+    for (text of posts){
+        // 一行に収まらない場合、折り返す
+        text = optimizeText(text);
+        text = '  ' + insert(text, (width - 4), '\n  ');
+        result += text + '\n';
+    };
+    //  メンションをハイライト
+    const mentions = tweet.entities.user_mentions;
+    if (mentions){
+        for (let mention of mentions){
+            const mentionId = `@${mention.screen_name}`;
+            result = result.replace(mentionId, mentionId.brightGreen);
+        };
+    };
+    // ハッシュタグをハイライト
+    const hashtags = tweet.entities.hashtags;
+    if (hashtags){
+        for (let tag of hashtags){
+            const tagText = `#${tag.text}`;
+            result = result.replace(tagText, tagText.brightCyan);
+        };
+    };
+    return result;
+};
+
+/**
+ * フッターを作成
+ * @param  {Object} tweet ツイートオブジェクト
+ * @return {String}       フッター
+ */
+function createFotter(tweet){
+    const width = process.stdout.columns;
+    let textCount = 0;
+    // いいね
+    const favCount = tweet.favorite_count;
+    let favText = '';
+    if (favCount){
+        favText = `fav: ${favCount}`;
+        textCount += favText.length + 1;
+        favText = (tweet.favorited) ? `${favText.black.bgBrightMagenta} ` : `${favText.brightMagenta} `;
+    };
+    // RT
+    const rtCount = tweet.retweet_count;
+    let rtText = '';
+    if (rtCount){
+        rtText = `RT: ${rtCount}`;
+        textCount += rtText.length + 1;
+        rtText= (tweet.retweeted) ? `${rtText.black.bgBrightGreen} ` : `${rtText.brightGreen} `;
+    };
+    // via
+    const start = tweet.source.indexOf('>') + 1;
+    const end = tweet.source.indexOf('</a>');
+    let via = `  via ${tweet.source.slice(start, end)}`;
+    textCount += getStrWidth(via);
+    // フッター
+    let postTime = ` ${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}`;
+    textCount += postTime.length;
+    const fotter = ' '.repeat(width - textCount) + favText + rtText + postTime.grey + via.gray;
+    return fotter;
+};
+
+/**
+ * ユーザーのプロフィールを表示
+ * @param {Object} user ユーザーオブジェクト
+ */
 function showUserInfo(user){
     const width = process.stdout.columns;
-    console.log(user)
-    const name = optimizeText(user.name);
+    // ユーザー名
+    let name = optimizeText(user.name);
+    // 認証済みアカウント
+    if (user.verified){
+        name += ' [verified]'.cyan;
+    };
+    // 鍵アカウント
+    if (user.protected) {
+        name += ' [private]'.gray;
+    };
+    // ユーザーID
     const id = `@${user.screen_name}`;
+    // 場所
     const location = optimizeText(user.location);
-    
-    
+    // 説明
     let description = optimizeText(user.description);
     description = insert(description, (width - 12), '\n          ');
-
+    // URL
     const url = user.url;
+    // アカウント作成日
     const created = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
-    //user.protected;
-    //user.verified;
-    const follower = user.followers_count;
+    // フォロー・フォロワー・ツイート数
+    let follower = user.followers_count;
     const follow = user.friends_count;
     const tweetCount = `${user.statuses_count} tweets`;
-    const following = user.following;
-
+    // フォロー中
+    if (user.following){
+        follower = follower.cyan
+    };
+    // 表示する
     process.stdout.write('-'.repeat(width) + '\n');
     process.stdout.write(`  ${name.bold} ${id.gray} ${tweetCount.brightCyan}\n`);
-    
     process.stdout.write(`    desc: ${description}\n`);
-
     process.stdout.write(`     URL: ${url}\n`);
     process.stdout.write(`  locate: ${location}\n`);
     process.stdout.write(`  follow: ${follow}  follower: ${follower}\n`);
     process.stdout.write(`  created at ${created}\n`.grey);
     process.stdout.write('-'.repeat(width) + '\n');
-
 };
 
 /**
