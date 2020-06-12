@@ -19,13 +19,10 @@ const client = new Twitter({
     access_token_secret: `${process.env.ACCESS_TOKEN_SECRET}`
 });
 
-/*
-tweetPost('変な天気', [])
-    .catch((err) => {console.error(err)});
-*/
 
-getTimeline(10);
-//getUserTimeline('', 5);
+//tweetPost('test', ['nyaan.png']).catch((err) => {console.error(err)});
+//getTimeline(10);
+getUserTimeline('@UN_NERV', 5);
 //searchTweet('#petitcom', 2);
 
 
@@ -39,12 +36,13 @@ async function tweetPost(tweetText, paths){
     let mediaIds = '';
 
     // テキストを追加
-    status['status'] = tweetText;
+    status.status = tweetText;
 
     // 画像があればアップロードする
-    if (paths.length > 4) {
-        throw new Error('添付画像は4枚までです');
-    } else if (paths.length){
+    if (paths.length){
+        if (paths.length > 4){
+            throw new Error('添付画像は4枚までです');
+        };
         for (filePath of paths){
             // 画像があるか確認
             try {
@@ -71,7 +69,7 @@ async function tweetPost(tweetText, paths){
                 continue;
             };
         };
-        status['media_ids'] = mediaIds;
+        status.media_ids = mediaIds;
     };
 
     console.log(status);
@@ -163,7 +161,7 @@ function showTweet(tweets){
         };
 
         // ヘッダー
-        const header = createHeader(tweet, i);
+        const header = ` ${i}:`.brightWhite.bgBrightBlue + ' ' + createHeader(tweet.user);
 
         // 投稿内容
         const postText = createTweet(tweet);
@@ -184,22 +182,21 @@ function showTweet(tweets){
 
 /**
  * ヘッダーを作成
- * @param  {Object} tweet ツイートオブジェクト
- * @param  {Number} index ツイートのインデックス
+ * @param  {Object} tweet ユーザーオブジェクト
  * @return {String}       ヘッダー
  */
-function createHeader(tweet, index){
+function createHeader(user){
     // ユーザー情報
-    const userName = optimizeText(tweet.user.name);
-    const userId = `  @${tweet.user.screen_name}`;
+    const userName = optimizeText(user.name);
+    const userId = `  @${user.screen_name}`;
     // 公式・鍵アカウント
     const badge = (
-            (tweet.user.verified) ? ' [verified]'.cyan
-        : (tweet.user.protected) ? ' [private]'.gray
+          (user.verified) ? ' [verified]'.cyan
+        : (user.protected) ? ' [private]'.gray
         : ''
     );
     // ヘッダー
-    const header = ` ${index}:`.white.bgBrightBlue + ' ' + userName.bold.underline + userId.gray + badge;
+    const header = userName.bold.underline + userId.dim + badge;
     return header;
 };
 
@@ -282,44 +279,37 @@ function createFotter(tweet){
  */
 function showUserInfo(user){
     const width = process.stdout.columns;
-    // ユーザー名
-    let name = optimizeText(user.name);
-    // 認証済みアカウント
-    if (user.verified){
-        name += ' [verified]'.cyan;
-    };
-    // 鍵アカウント
-    if (user.protected) {
-        name += ' [private]'.gray;
-    };
-    // ユーザーID
-    const id = `@${user.screen_name}`;
+
+    // ユーザー名・ユーザーID
+    const userName = createHeader(user);
     // 場所
     const location = optimizeText(user.location);
     // 説明
     let description = optimizeText(user.description);
-    description = insert(description, (width - 12), '\n          ');
+    description = insert(description, (width - 14), '\n            ');
     // URL
     const url = user.url;
     // アカウント作成日
-    const created = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
+    let createdAt = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
+    createdAt =  `  created at ${createdAt}`;
     // フォロー・フォロワー・ツイート数
     let follower = user.followers_count;
     const follow = user.friends_count;
     const tweetCount = `${user.statuses_count} tweets`;
     // フォロー中
     if (user.following){
-        follower = follower.cyan
+        follower = `${follower} ${'[following]'.cyan}`;
     };
     // 表示する
-    process.stdout.write('-'.repeat(width) + '\n');
-    process.stdout.write(`  ${name.bold} ${id.gray} ${tweetCount.brightCyan}\n`);
-    process.stdout.write(`    desc: ${description}\n`);
-    process.stdout.write(`     URL: ${url}\n`);
-    process.stdout.write(`  locate: ${location}\n`);
-    process.stdout.write(`  follow: ${follow}  follower: ${follower}\n`);
-    process.stdout.write(`  created at ${created}\n`.grey);
-    process.stdout.write('-'.repeat(width) + '\n');
+    process.stdout.write(`${'='.repeat(width)}\n\n`.rainbow);
+    process.stdout.write(`  ${userName}  ${tweetCount.brightCyan}\n\n`);
+    process.stdout.write(`      desc: ${description}\n`);
+    process.stdout.write(`    locate: ${location}\n`);
+    process.stdout.write(`       URL: ${url}\n`);
+    process.stdout.write(`    follow: ${follow}\n`);
+    process.stdout.write(`  follower: ${follower}\n`);
+    process.stdout.write(' '.repeat(width - createdAt.length) + createdAt.brightBlue + '\n');
+    process.stdout.write(`${'='.repeat(width)}\n`.rainbow);
 };
 
 /**
