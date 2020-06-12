@@ -199,7 +199,7 @@ function createHeader(tweet, index){
         : ''
     );
     // ヘッダー
-    const header = ` ${index}:`.black.bgWhite + ' ' + userName.bold + userId.gray + badge;
+    const header = ` ${index}:`.white.bgBrightBlue + ' ' + userName.bold.underline + userId.gray + badge;
     return header;
 };
 
@@ -221,7 +221,7 @@ function createTweet(tweet){
         text = '  ' + insert(text, (width - 4), '\n  ');
         result += text + '\n';
     };
-    //  メンションをハイライト
+    //  メンションをハイライト (途中で改行されると無力)
     const mentions = tweet.entities.user_mentions;
     if (mentions){
         for (let mention of mentions){
@@ -229,7 +229,7 @@ function createTweet(tweet){
             result = result.replace(mentionId, mentionId.brightGreen);
         };
     };
-    // ハッシュタグをハイライト
+    // ハッシュタグをハイライト (途中で改行されると無力)
     const hashtags = tweet.entities.hashtags;
     if (hashtags){
         for (let tag of hashtags){
@@ -272,7 +272,7 @@ function createFotter(tweet){
     // フッター
     let postTime = ` ${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}`;
     textCount += postTime.length;
-    const fotter = ' '.repeat(width - textCount) + favText + rtText + postTime.grey + via.gray;
+    const fotter = ' '.repeat(width - textCount) + favText + rtText + postTime.cyan + via.brightBlue;
     return fotter;
 };
 
@@ -325,7 +325,7 @@ function showUserInfo(user){
 /**
  * 文字列の表示幅を取得
  * @param  {String} text テキスト
- * @return {Number}      半角文字での表示幅
+ * @return {Number}      全角文字を2とした文字列全体の表示幅
  */
 function getStrWidth(text){
     let len = 0;
@@ -340,7 +340,7 @@ function getStrWidth(text){
 };
 
 /**
- * 文字列に指定した間隔で文字を挿入
+ * 文字列に指定した間隔で文字を挿入（ちょっと怪しい）
  * @param  {String} text   文字列
  * @param  {Number} length 挿入する間隔（偶数推奨）
  * @param  {String} add    挿入する文字
