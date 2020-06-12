@@ -20,11 +20,14 @@ const client = new Twitter({
 });
 
 
-//tweetPost('test', ['nyaan.png']).catch((err) => {console.error(err)});
+//tweetPost('ツイート削除のテスト！\nすぐに消えるはず', []).catch((err) => {console.error(err)});
 //getTimeline(20);
-//getUserTimeline('', 5);
+//getUserTimeline('Arrow_0723_2nd', 5);
 //searchTweet('apple', 10);
 
+//favorite('', 1);
+//retweet('', 1);
+//deleteTweet();
 
 /**
  * ツイートする
@@ -83,6 +86,54 @@ async function tweetPost(tweetText, paths){
 };
 
 /**
+ * いいねの操作
+ * @param {String}  tweetId ツイートID
+ * @param {Boolean} mode    0:いいね 1:取り消す
+ */
+function favorite(tweetId, mode){
+    const type = ['create', 'destroy'];
+    client.post(`favorites/${type[mode]}`, {id: tweetId}, (err, tweet, res) => {
+        if (!err) {
+            const msg = (mode) ? 'いいねを取り消しました！' : 'いいねしました！';
+            console.log(msg.cyan);
+        } else {
+            showErrorMsg(err);
+        };
+    });
+};
+
+/**
+ * リツイートの操作
+ * @param {String}  tweetId ツイートID
+ * @param {Boolean} mode    0:リツイート 1:取り消す
+ */
+function retweet(tweetId, mode){
+    const type = ['retweet', 'unretweet'];
+    client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}, (err, tweet, res) => {
+        if (!err) {
+            const msg = (mode) ? 'リツイートを取り消しました！' : 'リツイートしました！';
+            console.log(msg.cyan);
+        } else {
+            showErrorMsg(err);
+        };
+    });
+};
+
+/**
+ * ツイートを削除
+ * @param {String} tweetId ツイートID
+ */
+function deleteTweet(tweetId){
+    client.post(`statuses/destroy/${tweetId}`, {id: tweetId}, (err, tweet, res) => {
+        if (!err) {
+            console.log(`削除しました！: ${tweet.text}`.cyan);
+        } else {
+            showErrorMsg(err);
+        };
+    });
+};
+
+/**
  * TLを取得
  * @param {Number} count 取得件数（最大200件）
  */
@@ -113,6 +164,7 @@ function getUserTimeline(userName, count){
     };
     client.get('statuses/user_timeline', param, (err, tweets, res) => {
         if (!err) {
+            console.log(tweets);
             showUserInfo(tweets[0].user);
             showTweet(tweets);
         } else {
@@ -148,8 +200,9 @@ function showErrorMsg(error){
         88: '読み込み回数の制限に達しました',
         130: '現在Twitterへのアクセスが集中しています',
         131: 'Twitter側で不明なエラーが発生しました',
+        144: '該当するツイートが見つかりませんでした',
         161: 'フォローに失敗しました',
-        179: 'ツイートを閲覧できません',
+        179: 'ツイートを閲覧する権限がありません',
         185: '投稿回数の制限に達しました',
         187: 'ツイートが重複しています'
     };
@@ -180,7 +233,7 @@ function showTweet(tweets){
         };
 
         // ヘッダー
-        const header = ` ${i}:`.brightWhite.bgBrightBlue + ' ' + createHeader(tweet.user);
+        const header = ` ${i}:`.brightWhite.bgBrightBlue + ' ' + createHeader(tweet.user) + `  ${tweet.id}`;
 
         // 投稿内容
         const postText = createTweet(tweet);
