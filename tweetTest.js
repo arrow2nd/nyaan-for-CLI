@@ -23,9 +23,11 @@ const client = new Twitter({
 tweetPost('変な天気', [])
     .catch((err) => {console.error(err)});
 */
-getTimeline(10);
-//getUserTimeline('@Arrow_0723_2nd', 10);
+
+//getTimeline(10);
+getUserTimeline('@m_mic_0707', 5);
 //searchTweet('#petitcom', 2);
+
 
 /**
  * ツイートする
@@ -95,7 +97,8 @@ function getTimeline(count){
     };
     client.get('statuses/home_timeline', param, (err, tweets, res) => {
         if (!err) {
-            showTweet(tweets);
+            showUserInfo(tweets[0].user);
+//            showTweet(tweets);
         } else {
             if (err[0].code == 88){
                 console.error('読み込み回数の制限に達しました'.brightRed);
@@ -119,6 +122,7 @@ function getUserTimeline(userName, count){
     };
     client.get('statuses/user_timeline', param, (err, tweets, res) => {
         if (!err) {
+            showUserInfo(tweets[0].user);
             showTweet(tweets);
         } else {
             console.error(err);
@@ -155,12 +159,12 @@ function showTweet(tweets){
 
         // 公式RTだった場合、RT元のツイートに置き換える
         if (tweet.retweeted_status){
-            rtByUser = `RT by ${emoji.strip(tweet.user.name)} (@${tweet.user.screen_name})`;
+            rtByUser = `RT by ${optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;
             tweet = tweet.retweeted_status;
         };
 
         // ユーザー情報
-        const userName = emoji.strip(tweet.user.name);
+        const userName = optimizeText(tweet.user.name);
         const userId = `  @${tweet.user.screen_name}`;
         let badge = '';
         // 認証済みアカウント
@@ -176,9 +180,7 @@ function showTweet(tweets){
         const header = index.black.bgWhite + ' ' + userName.bold + userId.gray + badge;
 
         // 投稿内容
-        let postText = emoji.strip(tweet.text);
-        // 全角スペースを置換
-        postText = postText.replace(/　/g, '  ');
+        let postText = optimizeText(tweet.text);
         //  メンションをハイライト
         const mentions = tweet.entities.user_mentions;
         if (mentions){
@@ -234,6 +236,40 @@ function showTweet(tweets){
     };
 };
 
+
+function showUserInfo(user){
+    const width = process.stdout.columns;
+    console.log(user)
+    const name = optimizeText(user.name);
+    const id = `@${user.screen_name}`;
+    const location = optimizeText(user.location);
+    
+    
+    let description = optimizeText(user.description);
+    description = insert(description, (width - 12), '\n          ');
+
+    const url = user.url;
+    const created = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
+    //user.protected;
+    //user.verified;
+    const follower = user.followers_count;
+    const follow = user.friends_count;
+    const tweetCount = `${user.statuses_count} tweets`;
+    const following = user.following;
+
+    process.stdout.write('-'.repeat(width) + '\n');
+    process.stdout.write(`  ${name.bold} ${id.gray} ${tweetCount.brightCyan}\n`);
+    
+    process.stdout.write(`    desc: ${description}\n`);
+
+    process.stdout.write(`     URL: ${url}\n`);
+    process.stdout.write(`  locate: ${location}\n`);
+    process.stdout.write(`  follow: ${follow}  follower: ${follower}\n`);
+    process.stdout.write(`  created at ${created}\n`.grey);
+    process.stdout.write('-'.repeat(width) + '\n');
+
+};
+
 /**
  * 文字列の表示幅を取得
  * @param  {String} text テキスト
@@ -249,4 +285,51 @@ function getStrWidth(text){
         };
     };
     return len;
+};
+
+/**
+ * 文字列に指定した間隔で文字を挿入
+ * @param  {String} text   文字列
+ * @param  {Number} length 挿入する間隔（偶数推奨）
+ * @param  {String} add    挿入する文字
+ * @return {String}        編集後の文字列
+ */
+function insert(text, length, add){
+    let index, len, start = 0;
+    let result = '', rest = text;
+
+    while (length < getStrWidth(rest)){
+        // 文字の表示幅を考慮して範囲を切り出し
+        for (index = start, len = length; len > 0; index++, len--){
+            const value = text[index];
+            if (!value){
+                break;
+            } else if (getStrWidth(value) == 2){
+                len--;
+            };
+            result += value;
+        };
+        // 指定の文字を追加
+        result += add;
+        // 切り出し位置をズラす
+        start = index;
+        // 残り
+        rest = text.slice(start);
+    };
+
+    // 残りの文字列を結合
+    result += rest;
+    return result;
+};
+
+/**
+ * 文字列から全角スペース・改行・絵文字を取り除く
+ * @param  {String} text 文字列
+ * @return {String}      編集後の文字列
+ */
+function optimizeText(text){
+    text = text.replace(/　/g, ' ');
+    text = text.replace(/\n/g, ' ');
+    text = emoji.strip(text);
+    return text;
 };
