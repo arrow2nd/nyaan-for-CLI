@@ -130,7 +130,7 @@ function retweet(tweetId, mode){
 function getTimeline(count){
     const param = {
         count: count,
-        exclude_replies: false,
+        exclude_replies: true,
     };
     client.get('statuses/home_timeline', param, (err, tweets, res) => {
         if (!err) {
@@ -152,12 +152,12 @@ function getUserTimeline(userName, count){
     const param = {
         screen_name: '@' + userName,
         count: count,
-        exclude_replies: false
+        exclude_replies: true
     };
     client.get('statuses/user_timeline', param, (err, tweets, res) => {
         if (!err) {
-            showUserInfo(tweets[0].user);
             showTweet(tweets);
+            showUserInfo(tweets[0].user);
         } else {
             util.showErrorMsg(err);
         };
@@ -326,7 +326,6 @@ function showUserInfo(user){
     const location = util.optimizeText(user.location);
     // 説明
     let description = util.optimizeText(user.description);
-    follower = (user.following) ? `${follower} ${'[following]'.cyan}` : follower;
     description = util.insert(description, (width - 14), '\n            ');
     // URL
     const url = user.url;
