@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 'use strict';
-
 const program = require('commander');
 const colors = require('colors');
 const tweet = require('./tweet.js');
+const interactive = require('./interactive.js');
 
 // バージョン
 program
@@ -69,10 +69,11 @@ program
         process.stdout.write('  $ nyaan sch "calico cat" 50\n'.brightMagenta);
     });
 
-// コマンドがない場合、対話モードを起動
-if (!process.argv[2]){
-    console.log('@@@');
-    return;
+// コマンドがあれば解析、なければタイムラインを表示して入力を待つ
+if (process.argv[2]){
+    program.parse(process.argv);
+} else {
+    interactive.main().then(array => {
+        program.parse(array, {from: 'user'});
+    });
 };
-
-program.parse(process.argv);
