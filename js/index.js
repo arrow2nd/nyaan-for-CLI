@@ -48,7 +48,7 @@ program
     .action((userId, counts) => {
         userId = userId.replace(/@|＠/, '');
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        getUserTimeline(userId, counts);
+        tweet.getUserTimeline(userId, counts);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan userTimeline @Twitter\n'.brightMagenta);
@@ -62,7 +62,7 @@ program
     .description('  キーワードからツイートを検索します。取得件数は最大200件です。')
     .action((keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        searchTweet(keyword, counts);
+        tweet.searchTweet(keyword, counts);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan search 三毛猫\n'.brightMagenta);
