@@ -3,6 +3,19 @@ const colors = require('colors');
 const emoji = require('node-emoji');
 
 /**
+ * タグを降順でソート
+ * @param  {Array} array 文字列配列
+ * @return {Array}       ソートした文字列配列
+ */
+function sortTag(array){
+    return array.sort((a,b) => {
+        if (a.text.length > b.text.length) return -1;
+        if (a.text.length < b.text.length) return 1;
+        return 0;
+    });
+};
+
+/**
  * 文字列の表示幅を取得
  * @param  {String} text テキスト
  * @return {Number}      全角文字を2とした文字列全体の表示幅
@@ -22,7 +35,7 @@ function getStrWidth(text){
 /**
  * 文字列に指定した間隔で文字を挿入（ちょっと怪しい）
  * @param  {String} text   文字列
- * @param  {Number} length 挿入する間隔（偶数推奨）
+ * @param  {Number} length 挿入する間隔（全角は2文字）
  * @param  {String} add    挿入する文字
  * @return {String}        編集後の文字列
  */
@@ -93,6 +106,7 @@ function showErrorMsg(error){
 };
 
 module.exports = {
+    sortTag,
     getStrWidth,
     insert,
     optimizeText,
