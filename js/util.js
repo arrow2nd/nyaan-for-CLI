@@ -1,6 +1,25 @@
 'use strict';
+const readline = require('readline');
 const colors = require('colors');
 const emoji = require('node-emoji');
+
+/**
+ * コンソールからの入力を受け付ける
+ * @return {Array} 文字列配列
+ */
+function readlineSync(){
+    return new Promise((resolve) => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        // 入力受付
+        rl.question('nyaan >'.cyan + '>'.brightCyan + '> '.brightWhite, (input) => {
+            rl.close();
+            resolve(input.split(' '));
+        });
+    });
+};
 
 /**
  * タグを降順でソート
@@ -106,6 +125,7 @@ function showErrorMsg(error){
 };
 
 module.exports = {
+    readlineSync,
     sortTag,
     getStrWidth,
     insert,
