@@ -78,7 +78,7 @@ async function tweetPost(tweetText, mediaPaths){
  * ツイートを削除する
  * @param {String} tweetId ツイートID
  */
-function deleteTweet(tweetId){
+async function deleteTweet(tweetId){
     client.post(`statuses/destroy/${tweetId}`, {id: tweetId}, (err, tweet, res) => {
         if (!err) {
             console.log('削除しました！: '.cyan + tweet.text);
@@ -93,16 +93,14 @@ function deleteTweet(tweetId){
  * @param {String}  tweetId ツイートID
  * @param {Boolean} mode    0:いいね 1:取り消す
  */
-function favorite(tweetId, mode){
+async function favorite(tweetId, mode){
     const type = ['create', 'destroy'];
-    client.post(`favorites/${type[mode]}`, {id: tweetId}, (err, tweet, res) => {
-        if (!err) {
-            const msg = (mode) ? 'いいねを取り消しました！' : 'いいねしました！';
-            console.log(msg.cyan);
-        } else {
-            util.showErrorMsg(err);
-        };
+    const tweet = client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
+        util.showErrorMsg(err);
+        return;
     });
+    const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
+    console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
 };
 
 /**
@@ -110,16 +108,14 @@ function favorite(tweetId, mode){
  * @param {String}  tweetId ツイートID
  * @param {Boolean} mode    0:リツイート 1:取り消す
  */
-function retweet(tweetId, mode){
+async function retweet(tweetId, mode){
     const type = ['retweet', 'unretweet'];
-    client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}, (err, tweet, res) => {
-        if (!err) {
-            const msg = (mode) ? 'リツイートを取り消しました！' : 'リツイートしました！';
-            console.log(msg.cyan);
-        } else {
-            util.showErrorMsg(err);
-        };
+    const tweet = client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
+        util.showErrorMsg(err);
+        return;
     });
+    const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
+    console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
 };
 
 /**
@@ -127,19 +123,17 @@ function retweet(tweetId, mode){
  * @param  {Number} count 取得件数（最大200件）
  * @return {Array}        取得したツイート
  */
-function getTimeline(count){
+async function getTimeline(count){
     const param = {
         count: count,
         exclude_replies: true,
     };
-    client.get('statuses/home_timeline', param, (err, tweets, res) => {
-        if (!err) {
-            showTweet(tweets);
-        } else {
-            util.showErrorMsg(err);
-        };
-        return tweets;
+    const tweets = await client.get('statuses/home_timeline', param).catch(err => {
+        util.showErrorMsg(err);
+        return;
     });
+    showTweet(tweets);
+    return tweets;
 };
 
 /**
@@ -148,21 +142,19 @@ function getTimeline(count){
  * @param  {Number} count    取得件数（最大200件）
  * @return {Array}           取得したツイート
  */
-function getUserTimeline(userName, count){
+async function getUserTimeline(userName, count){
     const param = {
         screen_name: '@' + userName,
         count: count,
         exclude_replies: true
     };
-    client.get('statuses/user_timeline', param, (err, tweets, res) => {
-        if (!err) {
-            showTweet(tweets);
-            showUserInfo(tweets[0].user);
-        } else {
-            util.showErrorMsg(err);
-        };
-        return tweets;
+    const tweets = client.get('statuses/user_timeline', param).catch(err => {
+        util.showErrorMsg(err);
+        return;
     });
+    showTweet(tweets);
+    showUserInfo(tweets[0].user);
+    return tweets;
 };
 
 /**
@@ -171,15 +163,13 @@ function getUserTimeline(userName, count){
  * @param  {Number} count 取得件数（最大200件）
  * @return {Array}        取得したツイート
  */
-function searchTweet(query, count){
-    client.get('search/tweets', {q: query + ' exclude:retweets', count: count}, (err, tweets, res) => {
-        if (!err){
-            showTweet(tweets.statuses);
-        } else {
-            util.showErrorMsg(err);
-        };
-        return tweets;
+async function searchTweet(query, count){
+    const tweets = client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).catch(err => {
+        util.showErrorMsg(err);
+        return;
     });
+    showTweet(tweets.statuses);
+    return tweets;
 };
 
 /**
