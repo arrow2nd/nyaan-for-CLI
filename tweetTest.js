@@ -6,8 +6,7 @@ const dotenv = require('dotenv');
 const Twitter = require('twitter');
 const colors = require('colors');
 const moment = require('moment');
-
-const emoji = require('node-emoji');0
+const emoji = require('node-emoji');
 
 dotenv.config();
 
@@ -164,7 +163,6 @@ function getUserTimeline(userName, count){
     };
     client.get('statuses/user_timeline', param, (err, tweets, res) => {
         if (!err) {
-            console.log(tweets);
             showUserInfo(tweets[0].user);
             showTweet(tweets);
         } else {
@@ -207,7 +205,7 @@ function showTweet(tweets){
         };
 
         // ヘッダー
-        const header = ` ${i}:`.brightWhite.bgBrightBlue + ' ' + createHeader(tweet.user) + `  ${tweet.id}`;
+        const header = ` ${i}:`.brightWhite.bgBrightBlue + ' ' + createHeader(tweet.user);
 
         // 投稿内容
         const postText = createTweet(tweet);
