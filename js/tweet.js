@@ -34,8 +34,8 @@ async function tweetPost(tweetText, mediaPaths){
     if (mediaPaths){
         const paths = mediaPaths.split(',');
         const pathLength = (paths.length > 4) ? 4 : paths.length;
-        for (let i = 0; i < pathLength - 1; i++){
-            const filePath = paths[i];
+        for (let i = 0; i < pathLength; i++){
+            const filePath = paths[i].trim();
             // 画像があるか確認
             try {
                 fs.statSync(filePath);
@@ -48,10 +48,13 @@ async function tweetPost(tweetText, mediaPaths){
             if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif'){
                 const file = fs.readFileSync(filePath);
                 // アップロード
-                const media = await client.post('media/upload', {media: file}).catch(err => {
+                let media;
+                try {
+                    media = await client.post('media/upload', {media: file});
+                } catch(err) {
                     console.error(`アップロードに失敗しました(${filePath})`.brightRed);
                     continue;
-                });
+                };
                 mediaIds += media.media_id_string + ',';
             } else {
                 console.error(`未対応の拡張子です(${ext})`.brightRed);
@@ -64,7 +67,7 @@ async function tweetPost(tweetText, mediaPaths){
     // ツイートする
     client.post('statuses/update', status, (err, tweet, res) => {
         if (!err) {
-            console.log(`ツイートしました！: ${tweetText}`.cyan);
+            console.log('ツイートしました！: '.cyan + tweetText);
         } else {
             util.showErrorMsg(err);
         };
@@ -78,7 +81,7 @@ async function tweetPost(tweetText, mediaPaths){
 function deleteTweet(tweetId){
     client.post(`statuses/destroy/${tweetId}`, {id: tweetId}, (err, tweet, res) => {
         if (!err) {
-            console.log(`削除しました！: ${tweet.text}`.cyan);
+            console.log('削除しました！: '.cyan + tweet.text);
         } else {
             util.showErrorMsg(err);
         };
