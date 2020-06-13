@@ -251,27 +251,28 @@ function createTweet(tweet){
     let result = '';
     // 改行で分割
     let posts = post.split('\n');
-    // 見やすい形に成形
     for (text of posts){
         // 一行に収まらない場合、折り返す
         text = util.optimizeText(text);
         text = '  ' + util.insert(text, (width - 4), '\n  ');
         result += text + '\n';
     };
-    //  メンションをハイライト (途中で改行されると無力)
-    const mentions = tweet.entities.user_mentions;
+    // メンションをハイライト (途中で改行されると無力)
+    let mentions = tweet.entities.user_mentions;
     if (mentions){
+        mentions = util.sortTag(mentions);
         for (let mention of mentions){
-            const mentionId = `@${mention.screen_name}`;
-            result = result.replace(mentionId, mentionId.brightGreen);
+            const text = mention.screen_name;
+            result = result.replace(`@${text}`, '@'.brightGreen + text.brightGreen);
         };
     };
     // ハッシュタグをハイライト (途中で改行されると無力)
-    const hashtags = tweet.entities.hashtags;
+    let hashtags = tweet.entities.hashtags;
     if (hashtags){
+        hashtags = util.sortTag(hashtags);
         for (let tag of hashtags){
-            const tagText = `#${tag.text}`;
-            result = result.replace(tagText, tagText.brightCyan);
+            const text = tag.text;
+            result = result.replace(`#${text}`, '#'.brightCyan + text.brightCyan);
         };
     };
     return result;
