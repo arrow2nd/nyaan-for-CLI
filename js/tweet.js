@@ -26,6 +26,7 @@ const client = new Twitter({
 async function tweetPost(tweetText, mediaPaths){
     let status = {};
     let mediaIds = '';
+    let uploads = '';
 
     // テキストを追加
     status.status = tweetText;
@@ -56,6 +57,7 @@ async function tweetPost(tweetText, mediaPaths){
                     continue;
                 };
                 mediaIds += media.media_id_string + ',';
+                uploads += filePath + ' ';
             } else {
                 console.error(`未対応の拡張子です(${ext})`.brightRed);
                 continue;
@@ -68,6 +70,9 @@ async function tweetPost(tweetText, mediaPaths){
     client.post('statuses/update', status, (err, tweet, res) => {
         if (!err) {
             console.log('ツイートしました！: '.cyan + tweetText);
+            if (mediaPaths){
+                console.log('添付画像: '.cyan + uploads);
+            };
         } else {
             util.showErrorMsg(err);
         };
@@ -79,13 +84,12 @@ async function tweetPost(tweetText, mediaPaths){
  * @param {String} tweetId ツイートID
  */
 async function deleteTweet(tweetId){
-    client.post(`statuses/destroy/${tweetId}`, {id: tweetId}, (err, tweet, res) => {
-        if (!err) {
-            console.log('削除しました！: '.cyan + tweet.text);
-        } else {
-            util.showErrorMsg(err);
-        };
+    const tweet = client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => {
+        util.showErrorMsg(err);
     });
+    if (tweet) {
+        console.log('削除しました！: '.cyan + tweet.text);
+    };
 };
 
 /**
@@ -97,10 +101,11 @@ async function favorite(tweetId, mode){
     const type = ['create', 'destroy'];
     const tweet = client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
         util.showErrorMsg(err);
-        return;
     });
-    const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
-    console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
+    if (tweet){
+        const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
+        console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
+    };
 };
 
 /**
@@ -112,13 +117,15 @@ async function retweet(tweetId, mode){
     const type = ['retweet', 'unretweet'];
     const tweet = client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
         util.showErrorMsg(err);
-        return;
     });
-    const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
-    console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
+    if (tweet){
+        const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
+        console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
+    };
 };
 
-/**
+/**    if (tweets) {
+
  * タイムラインを取得する
  * @param  {Number} count 取得件数（最大200件）
  * @return {Array}        取得したツイート
@@ -130,9 +137,10 @@ async function getTimeline(count){
     };
     const tweets = await client.get('statuses/home_timeline', param).catch(err => {
         util.showErrorMsg(err);
-        return;
     });
-    showTweet(tweets);
+    if (tweets) {
+        showTweet(tweets);
+    };
     return tweets;
 };
 
@@ -150,10 +158,11 @@ async function getUserTimeline(userName, count){
     };
     const tweets = client.get('statuses/user_timeline', param).catch(err => {
         util.showErrorMsg(err);
-        return;
     });
-    showTweet(tweets);
-    showUserInfo(tweets[0].user);
+    if (tweets) {
+        showTweet(tweets);
+        showUserInfo(tweets[0].user);
+    };
     return tweets;
 };
 
@@ -166,9 +175,10 @@ async function getUserTimeline(userName, count){
 async function searchTweet(query, count){
     const tweets = client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).catch(err => {
         util.showErrorMsg(err);
-        return;
     });
-    showTweet(tweets.statuses);
+    if (tweets) {
+        showTweet(tweets.statuses);
+    };
     return tweets;
 };
 

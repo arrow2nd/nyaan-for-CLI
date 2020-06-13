@@ -3,7 +3,6 @@
 const program = require('commander');
 const colors = require('colors');
 const tweet = require('./tweet.js');
-const interactive = require('./interactive.js');
 
 // バージョン
 program
@@ -69,11 +68,9 @@ program
         process.stdout.write('  $ nyaan sch "calico cat" 50\n'.brightMagenta);
     });
 
-// コマンドがあれば解析、なければタイムラインを表示して入力を待つ
+// コマンドがあれば解析
 if (process.argv[2]){
     program.parse(process.argv);
 } else {
-    interactive.main().then(array => {
-        program.parse(array, {from: 'user'});
-    });
+    // TODO: 対話型インターフェイスを開く
 };

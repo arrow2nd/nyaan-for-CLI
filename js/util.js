@@ -116,6 +116,14 @@ function showErrorMsg(error){
         185: '投稿回数の制限に達しました',
         187: 'ツイートが重複しています'
     };
+
+    // オブジェクトが無い場合
+    if (!error[0]){
+        console.log('Error: エラー内容が取得できませんでした'.brightRed);
+        return;
+    };
+
+    // エラーを表示
     const code = error[0].code;
     let msg = err[code];
     if (!msg){
