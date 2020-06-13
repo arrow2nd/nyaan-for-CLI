@@ -1,8 +1,11 @@
 {
-  "name": "mum",
+  "name": "nyaan",
   "version": "1.0.0",
-  "description": "コマンドライン上で動くシンプルなTwitterクライアント",
-  "main": "index.js",
+  "description": "ねこによるねこのためのシンプルなTwitterクライアント",
+  "main": "./js/index.js",
+  "bin": {
+    "nyaan": "./js/index.js"
+  },
   "license": "MIT",
   "dependencies": {
     "colors": "^1.4.0",
