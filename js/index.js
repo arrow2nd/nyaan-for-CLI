@@ -9,8 +9,16 @@ const util = require('./util.js');
 let tweetsData = [];
 
 // バージョン
-program
-    .version('1.0.0', '-v, --version')
+program.version('1.0.0', '-v, --version')
+
+// 名前と大体の使い方
+program.name('nyaan').usage('command [options]');
+
+// コマンドが無い場合のメッセージ
+program.on('command:*', (operands) => {
+    console.error(`Error: ${operands[0]}は有効なコマンドではありません`);
+    return;
+});
 
 // 終了
 program
@@ -157,7 +165,7 @@ if (process.argv[2]){
 };
 
 
-// TODO: --helpと間違ったコマンドを入力すると終了する問題
+// TODO: --helpコマンドを入力すると終了する問題
 
 /**
  * 無理やり対話型にしてるやつ
