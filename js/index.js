@@ -19,10 +19,10 @@ program
     .description('  ツイートします。スペースを含む文は"で囲んでね。文が無い場合、にゃーんします。')
     .option('-m, --media <path>', '画像を添付します。複数ある場合は,で区切ってね。')
     .option('-n, --nyaan', '鳴き声を世界に発信します')
-    .action((text, options) => {
+    .action(async (text, options) => {
         const path = options.media || '';
         text = (options.nyaan || !text) ? 'にゃーん' : text;
-        tweet.tweetPost(text, path);
+        await tweet.tweetPost(text, path);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan tweet にゃーん\n'.brightMagenta);
@@ -34,9 +34,9 @@ program
     .command('timeline [counts]')
     .alias('tl')
     .description('  タイムラインを表示します。取得件数は最大200件です。')
-    .action((counts) => {
+    .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweetsData = tweet.getTimeline(counts);
+        tweetsData = await tweet.getTimeline(counts);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan timeline\n'.brightMagenta);
@@ -48,10 +48,10 @@ program
     .command('userTimeline <userId> [counts]')
     .alias('utl')
     .description('  指定したユーザーのタイムラインを表示します。取得件数は最大200件です。')
-    .action((userId, counts) => {
+    .action(async (userId, counts) => {
         userId = userId.replace(/@|＠/, '');
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweetsData = tweet.getUserTimeline(userId, counts);
+        tweetsData = await tweet.getUserTimeline(userId, counts);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan userTimeline @Twitter\n'.brightMagenta);
@@ -63,35 +63,39 @@ program
     .command('search <keyword> [counts]')
     .alias('sch')
     .description('  キーワードからツイートを検索します。取得件数は最大200件です。')
-    .action((keyword, counts) => {
+    .action(async (keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweetsData = tweet.searchTweet(keyword, counts);
+        tweetsData = await tweet.searchTweet(keyword, counts);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan search 三毛猫\n'.brightMagenta);
         process.stdout.write('  $ nyaan sch "calico cat" 50\n'.brightMagenta);
     });
 
-// コマンドがあれば解析
+// コマンドがあれば解析、なければ対話型のやつを開始
 if (process.argv[2]){
     program.parse(process.argv);
 } else {
-    // TODO: 対話型インターフェイスを開く
     interactive();
 };
 
 
 /**
- * 対話型インターフェイスみたいな
+ * 対話型のやーつ
  */
 async function interactive(){
     // とりあえずタイムライン表示
     tweetsData = await tweet.getTimeline(20);
-    // 入力待ち
+    // ループ
     let array = '';
-    do {
-        console.log(tweetsData);
+    while(1){
+        // 入力待ち
         array = await util.readlineSync();
+        // 終了
+        if (array[0] == 'exit'){
+            break;
+        };
+        // コマンド実行
         await program.parseAsync(array, {from: 'user'});
-    } while (array[0] != 'exit' || array[0] != 'quit');
+    };
 };

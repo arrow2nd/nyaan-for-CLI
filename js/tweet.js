@@ -67,15 +67,13 @@ async function tweetPost(tweetText, mediaPaths){
     };
 
     // ツイートする
-    client.post('statuses/update', status, (err, tweet, res) => {
-        if (!err) {
-            console.log('ツイートしました！: '.cyan + tweetText);
-            if (mediaPaths){
-                console.log('添付画像: '.cyan + uploads);
-            };
-        } else {
-            util.showErrorMsg(err);
+    await client.post('statuses/update', status).then(tweet => {
+        console.log('ツイートしました！: '.cyan + tweetText);
+        if (mediaPaths){
+            console.log('添付画像: '.cyan + uploads);
         };
+    }).catch(err => {
+        util.showErrorMsg(err);
     });
 };
 
@@ -84,12 +82,11 @@ async function tweetPost(tweetText, mediaPaths){
  * @param {String} tweetId ツイートID
  */
 async function deleteTweet(tweetId){
-    const tweet = await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => {
+    await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).then(tweet => {
+        console.log('削除しました！: '.cyan + tweet.text);
+    }).catch(err => {
         util.showErrorMsg(err);
     });
-    if (tweet) {
-        console.log('削除しました！: '.cyan + tweet.text);
-    };
 };
 
 /**
@@ -99,13 +96,12 @@ async function deleteTweet(tweetId){
  */
 async function favorite(tweetId, mode){
     const type = ['create', 'destroy'];
-    const tweet = await client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
-        util.showErrorMsg(err);
-    });
-    if (tweet){
+    await client.post(`favorites/${type[mode]}`, {id: tweetId}).then(tweet => {
         const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
         console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
-    };
+    }).catch(err => {
+        util.showErrorMsg(err);
+    });
 };
 
 /**
@@ -115,13 +111,12 @@ async function favorite(tweetId, mode){
  */
 async function retweet(tweetId, mode){
     const type = ['retweet', 'unretweet'];
-    const tweet = await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
-        util.showErrorMsg(err);
-    });
-    if (tweet){
+    await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).then(tweet => {
         const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
         console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
-    };
+    }).catch(err => {
+        util.showErrorMsg(err);
+    });
 };
 
 /**
@@ -134,13 +129,12 @@ async function getTimeline(count){
         count: count,
         exclude_replies: true,
     };
-    const tweets = await client.get('statuses/home_timeline', param).catch(err => {
+    await client.get('statuses/home_timeline', param).then(tweets => {
+        showTweet(tweets);
+        return tweets;
+    }).catch(err => {
         util.showErrorMsg(err);
     });
-    if (tweets) {
-        showTweet(tweets);
-    };
-    return tweets;
 };
 
 /**
@@ -155,14 +149,13 @@ async function getUserTimeline(userName, count){
         count: count,
         exclude_replies: true
     };
-    const tweets = await client.get('statuses/user_timeline', param).catch(err => {
-        util.showErrorMsg(err);
-    });
-    if (tweets) {
+    await client.get('statuses/user_timeline', param).then(tweets => {
         showTweet(tweets);
         showUserInfo(tweets[0].user);
-    };
-    return tweets;
+        return tweets;
+    }).catch(err => {
+        util.showErrorMsg(err);
+    });
 };
 
 /**
@@ -172,13 +165,12 @@ async function getUserTimeline(userName, count){
  * @return {Array}        取得したツイート
  */
 async function searchTweet(query, count){
-    const tweets = await client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).catch(err => {
+    await client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).then(tweets => {
+        showTweet(tweets.statuses);
+        return tweets;
+    }).catch(err => {
         util.showErrorMsg(err);
     });
-    if (tweets) {
-        showTweet(tweets.statuses);
-    };
-    return tweets;
 };
 
 /**
