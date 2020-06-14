@@ -74,17 +74,15 @@ program
         console.log('  $ nyaan tl 50'.brightMagenta);
     });
 
-// 指定ユーザーのタイムラインを見る
+// ユーザーのタイムラインを見る
 program
-    .command('userTimeline [userId] [counts]')
+    .command('usertimeline [userId] [counts]')
     .alias('utl')
     .description('指定したユーザーのタイムラインを表示します (最大200件)')
     .action(async (userId, counts) => {
-        if (!userId){
-            console.error('Error: ユーザーIDが指定されていません'.brightRed);
-            return;
+        if (userId){
+            userId = userId.replace(/@|＠/, '');
         };
-        userId = userId.replace(/@|＠/, '');
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const timeline = await tweet.getUserTimeline(userId, counts);
         tweetsData = (timeline) ? timeline : tweetsData;

@@ -140,15 +140,18 @@ async function getTimeline(count){
 
 /**
  * 特定ユーザーの投稿（TL）を取得する
- * @param  {String} userName ユーザーID
+ * @param  {String} userName ユーザーID(空にすると自分の投稿を取得)
  * @param  {Number} count    取得件数（最大200件）
  * @return {Array}           取得したツイート
  */
 async function getUserTimeline(userName, count){
-    const param = {
-        screen_name: '@' + userName,
+    let param = {
         count: count,
         exclude_replies: true
+    };
+    // ユーザーIDがあれば追加する
+    if (userName){
+        param.screen_name = '@' + userName;
     };
     const tweets = await client.get('statuses/user_timeline', param).catch(err => {
         util.showErrorMsg(err);
