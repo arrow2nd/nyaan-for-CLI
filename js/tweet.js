@@ -84,7 +84,7 @@ async function tweetPost(tweetText, mediaPaths){
  * @param {String} tweetId ツイートID
  */
 async function deleteTweet(tweetId){
-    const tweet = client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => {
+    const tweet = await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => {
         util.showErrorMsg(err);
     });
     if (tweet) {
@@ -99,7 +99,7 @@ async function deleteTweet(tweetId){
  */
 async function favorite(tweetId, mode){
     const type = ['create', 'destroy'];
-    const tweet = client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
+    const tweet = await client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
         util.showErrorMsg(err);
     });
     if (tweet){
@@ -115,7 +115,7 @@ async function favorite(tweetId, mode){
  */
 async function retweet(tweetId, mode){
     const type = ['retweet', 'unretweet'];
-    const tweet = client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
+    const tweet = await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
         util.showErrorMsg(err);
     });
     if (tweet){
@@ -124,8 +124,7 @@ async function retweet(tweetId, mode){
     };
 };
 
-/**    if (tweets) {
-
+/**
  * タイムラインを取得する
  * @param  {Number} count 取得件数（最大200件）
  * @return {Array}        取得したツイート
@@ -156,7 +155,7 @@ async function getUserTimeline(userName, count){
         count: count,
         exclude_replies: true
     };
-    const tweets = client.get('statuses/user_timeline', param).catch(err => {
+    const tweets = await client.get('statuses/user_timeline', param).catch(err => {
         util.showErrorMsg(err);
     });
     if (tweets) {
@@ -173,7 +172,7 @@ async function getUserTimeline(userName, count){
  * @return {Array}        取得したツイート
  */
 async function searchTweet(query, count){
-    const tweets = client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).catch(err => {
+    const tweets = await client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).catch(err => {
         util.showErrorMsg(err);
     });
     if (tweets) {
@@ -260,7 +259,7 @@ function createTweet(tweet){
     // メンションをハイライト (途中で改行されると無力)
     let mentions = tweet.entities.user_mentions;
     if (mentions){
-        mentions = util.sortTag(mentions);
+        mentions = util.sortTag(mentions, 'screen_name');
         for (let mention of mentions){
             const text = mention.screen_name;
             result = result.replace(`@${text}`, '@'.brightGreen + text.brightGreen);
@@ -269,7 +268,7 @@ function createTweet(tweet){
     // ハッシュタグをハイライト (途中で改行されると無力)
     let hashtags = tweet.entities.hashtags;
     if (hashtags){
-        hashtags = util.sortTag(hashtags);
+        hashtags = util.sortTag(hashtags, 'text');
         for (let tag of hashtags){
             const text = tag.text;
             result = result.replace(`#${text}`, '#'.brightCyan + text.brightCyan);

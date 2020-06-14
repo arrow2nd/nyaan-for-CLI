@@ -3,6 +3,10 @@
 const program = require('commander');
 const colors = require('colors');
 const tweet = require('./tweet.js');
+const util = require('./util.js');
+
+// どうしてこうなった
+let tweetsData = [];
 
 // バージョン
 program
@@ -32,7 +36,7 @@ program
     .description('  タイムラインを表示します。取得件数は最大200件です。')
     .action((counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweet.getTimeline(counts);
+        tweetsData = tweet.getTimeline(counts);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan timeline\n'.brightMagenta);
@@ -47,7 +51,7 @@ program
     .action((userId, counts) => {
         userId = userId.replace(/@|＠/, '');
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweet.getUserTimeline(userId, counts);
+        tweetsData = tweet.getUserTimeline(userId, counts);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan userTimeline @Twitter\n'.brightMagenta);
@@ -61,7 +65,7 @@ program
     .description('  キーワードからツイートを検索します。取得件数は最大200件です。')
     .action((keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweet.searchTweet(keyword, counts);
+        tweetsData = tweet.searchTweet(keyword, counts);
     }).on('--help', () => {
         process.stdout.write('\nExamples:\n');
         process.stdout.write('  $ nyaan search 三毛猫\n'.brightMagenta);
@@ -73,4 +77,21 @@ if (process.argv[2]){
     program.parse(process.argv);
 } else {
     // TODO: 対話型インターフェイスを開く
+    interactive();
+};
+
+
+/**
+ * 対話型インターフェイスみたいな
+ */
+async function interactive(){
+    // とりあえずタイムライン表示
+    tweetsData = await tweet.getTimeline(20);
+    // 入力待ち
+    let array = '';
+    do {
+        console.log(tweetsData);
+        array = await util.readlineSync();
+        await program.parseAsync(array, {from: 'user'});
+    } while (array[0] != 'exit' || array[0] != 'quit');
 };

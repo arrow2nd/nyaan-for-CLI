@@ -23,13 +23,14 @@ function readlineSync(){
 
 /**
  * タグを降順でソート
- * @param  {Array} array 文字列配列
- * @return {Array}       ソートした文字列配列
+ * @param  {Array}  array 文字列配列
+ * @param  {String} key   比較する要素のキー
+ * @return {Array}        ソートした文字列配列
  */
-function sortTag(array){
+function sortTag(array, key){
     return array.sort((a,b) => {
-        if (a.text.length > b.text.length) return -1;
-        if (a.text.length < b.text.length) return 1;
+        if (a[key].length > b[key].length) return -1;
+        if (a[key].length < b[key].length) return 1;
         return 0;
     });
 };
