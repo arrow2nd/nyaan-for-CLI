@@ -12,11 +12,16 @@ let tweetsData = [];
 program
     .version('1.0.0', '-v, --version')
 
+// 終了
+program
+    .command('exit')
+    .description('nyaanを終了します')
+
 // ツイートする
 program
     .command('tweet [text]')
     .alias('tw')
-    .description('  ツイートします。スペースを含む文は"で囲んでね。文が無い場合、にゃーんします。')
+    .description('ツイートします (スペースを含む文は"で囲んでね)')
     .option('-m, --media <path>', '画像を添付します。複数ある場合は,で区切ってね。')
     .option('-n, --nyaan', '鳴き声を世界に発信します')
     .action(async (text, options) => {
@@ -24,53 +29,125 @@ program
         text = (options.nyaan || !text) ? 'にゃーん' : text;
         await tweet.tweetPost(text, path);
     }).on('--help', () => {
-        process.stdout.write('\nExamples:\n');
-        process.stdout.write('  $ nyaan tweet にゃーん\n'.brightMagenta);
-        process.stdout.write('  $ nyaan tw -n -m nyaan.png\n'.brightMagenta);
+        console.log('\nExamples:');
+        console.log('  $ nyaan tweet にゃーん'.brightMagenta);
+        console.log('  $ nyaan tw -n -m nyaan.png'.brightMagenta);
     });
 
 // タイムラインを見る
 program
     .command('timeline [counts]')
     .alias('tl')
-    .description('  タイムラインを表示します。取得件数は最大200件です。')
+    .description('タイムラインを表示します (最大200件)')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweetsData = await tweet.getTimeline(counts);
+        const timeline = await tweet.getTimeline(counts);
+        tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
-        process.stdout.write('\nExamples:\n');
-        process.stdout.write('  $ nyaan timeline\n'.brightMagenta);
-        process.stdout.write('  $ nyaan tl 50\n'.brightMagenta);
+        console.log('\nExamples:');
+        console.log('  $ nyaan timeline'.brightMagenta);
+        console.log('  $ nyaan tl 50'.brightMagenta);
     });
 
 // 指定ユーザーのタイムラインを見る
 program
     .command('userTimeline <userId> [counts]')
     .alias('utl')
-    .description('  指定したユーザーのタイムラインを表示します。取得件数は最大200件です。')
+    .description('指定したユーザーのタイムラインを表示します (最大200件)')
     .action(async (userId, counts) => {
         userId = userId.replace(/@|＠/, '');
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweetsData = await tweet.getUserTimeline(userId, counts);
+        const timeline = await tweet.getUserTimeline(userId, counts);
+        tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
-        process.stdout.write('\nExamples:\n');
-        process.stdout.write('  $ nyaan userTimeline @Twitter\n'.brightMagenta);
-        process.stdout.write('  $ nyaan utl Twitter 50\n'.brightMagenta);
+        console.log('\nExamples:');
+        console.log('  $ nyaan userTimeline @Twitter'.brightMagenta);
+        console.log('  $ nyaan utl Twitter 50'.brightMagenta);
     });
 
 // キーワードでツイートを探す
 program
     .command('search <keyword> [counts]')
     .alias('sch')
-    .description('  キーワードからツイートを検索します。取得件数は最大200件です。')
+    .description('キーワードからツイートを検索します (最大200件)')
     .action(async (keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        tweetsData = await tweet.searchTweet(keyword, counts);
+        const tweets = await tweet.searchTweet(keyword, counts);
+        tweetsData = (tweets) ? tweets : tweetsData;
     }).on('--help', () => {
-        process.stdout.write('\nExamples:\n');
-        process.stdout.write('  $ nyaan search 三毛猫\n'.brightMagenta);
-        process.stdout.write('  $ nyaan sch "calico cat" 50\n'.brightMagenta);
+        console.log('\nExamples:');
+        console.log('  $ nyaan search 三毛猫'.brightMagenta);
+        console.log('  $ nyaan sch "calico cat" 50'.brightMagenta);
     });
+
+// ふぁぼる
+program
+    .command('favorite <index>')
+    .alias('fav')
+    .description('いいね！します')
+    .action(async (index) => {
+        const tweetId = tweet.getTweetId(tweetsData, index);
+        if (!tweetId){
+            return;
+        };
+        await tweet.favorite(tweetId, 0);
+    }).on('--help', () => {
+        console.log('\nExamples:');
+        console.log('  $ nyaan favorite 1'.brightMagenta);
+        console.log('  $ nyaan fav 10'.brightMagenta);
+    });
+
+// ふぁぼを取り消す
+program
+    .command('unfavorite <index>')
+    .alias('ufav')
+    .description('いいね！を取り消します')
+    .action(async (index) => {
+        const tweetId = tweet.getTweetId(tweetsData, index);
+        if (!tweetId){
+            return;
+        };
+        await tweet.favorite(tweetId, 1);
+    }).on('--help', () => {
+        console.log('\nExamples:');
+        console.log('  $ nyaan unfavorite 1'.brightMagenta);
+        console.log('  $ nyaan ufav 10'.brightMagenta);
+    });
+
+// リツイートする
+program
+    .command('retweet <index>')
+    .alias('rt')
+    .description('リツイートします')
+    .action(async (index) => {
+        const tweetId = tweet.getTweetId(tweetsData, index);
+        if (!tweetId){
+            return;
+        };
+        await tweet.retweet(tweetId, 0);
+    }).on('--help', () => {
+        console.log('\nExamples:');
+        console.log('  $ nyaan retweet 1'.brightMagenta);
+        console.log('  $ nyaan rt 10'.brightMagenta);
+    });
+
+// リツイートを取り消す
+program
+    .command('unretweet <index>')
+    .alias('urt')
+    .description('リツイートを取り消します')
+    .action(async (index) => {
+        const tweetId = tweet.getTweetId(tweetsData, index);
+        if (!tweetId){
+            return;
+        };
+        await tweet.retweet(tweetId, 1);
+    }).on('--help', () => {
+        console.log('\nExamples:');
+        console.log('  $ nyaan unretweet 1'.brightMagenta);
+        console.log('  $ nyaan urt 10'.brightMagenta);
+    });
+
 
 // コマンドがあれば解析、なければ対話型のやつを開始
 if (process.argv[2]){
@@ -80,22 +157,20 @@ if (process.argv[2]){
 };
 
 
+// TODO: --helpと間違ったコマンドを入力すると終了する問題
+
 /**
- * 対話型のやーつ
+ * 無理やり対話型にしてるやつ
  */
 async function interactive(){
     // とりあえずタイムライン表示
     tweetsData = await tweet.getTimeline(20);
     // ループ
     let array = '';
-    while(1){
+    do {
         // 入力待ち
         array = await util.readlineSync();
-        // 終了
-        if (array[0] == 'exit'){
-            break;
-        };
         // コマンド実行
         await program.parseAsync(array, {from: 'user'});
-    };
+    } while(array[0] != 'exit');
 };

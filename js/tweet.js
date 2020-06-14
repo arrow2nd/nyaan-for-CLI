@@ -68,7 +68,7 @@ async function tweetPost(tweetText, mediaPaths){
 
     // ツイートする
     await client.post('statuses/update', status).then(tweet => {
-        console.log('ツイートしました！: '.cyan + tweetText);
+        console.log('ツイートしました！: '.cyan + tweet.text);
         if (mediaPaths){
             console.log('添付画像: '.cyan + uploads);
         };
@@ -97,8 +97,8 @@ async function deleteTweet(tweetId){
 async function favorite(tweetId, mode){
     const type = ['create', 'destroy'];
     await client.post(`favorites/${type[mode]}`, {id: tweetId}).then(tweet => {
-        const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
-        console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
+        const msg = (mode) ? 'いいねを取り消しました！ ' : 'いいねしました！ ';
+        console.log(msg.cyan + `(${tweet.user.name}さんのツイート)`);
     }).catch(err => {
         util.showErrorMsg(err);
     });
@@ -112,8 +112,8 @@ async function favorite(tweetId, mode){
 async function retweet(tweetId, mode){
     const type = ['retweet', 'unretweet'];
     await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).then(tweet => {
-        const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
-        console.log(msg.cyan + `(tweetID: ${tweet.id_str})`);
+        const msg = (mode) ? 'リツイートを取り消しました！ ' : 'リツイートしました！ ';
+        console.log(msg.cyan + `(${tweet.user.name}さんのツイート)`);
     }).catch(err => {
         util.showErrorMsg(err);
     });
@@ -129,12 +129,13 @@ async function getTimeline(count){
         count: count,
         exclude_replies: true,
     };
-    await client.get('statuses/home_timeline', param).then(tweets => {
-        showTweet(tweets);
-        return tweets;
-    }).catch(err => {
+    const tweets = await client.get('statuses/home_timeline', param).catch(err => {
         util.showErrorMsg(err);
     });
+    if (tweets) {
+        showTweet(tweets);
+    };
+    return tweets;
 };
 
 /**
@@ -149,13 +150,14 @@ async function getUserTimeline(userName, count){
         count: count,
         exclude_replies: true
     };
-    await client.get('statuses/user_timeline', param).then(tweets => {
-        showTweet(tweets);
-        showUserInfo(tweets[0].user);
-        return tweets;
-    }).catch(err => {
+    const tweets = await client.get('statuses/user_timeline', param).catch(err => {
         util.showErrorMsg(err);
     });
+    if (tweets){
+        showTweet(tweets);
+        showUserInfo(tweets[0].user);
+    };
+    return tweets;
 };
 
 /**
@@ -165,12 +167,64 @@ async function getUserTimeline(userName, count){
  * @return {Array}        取得したツイート
  */
 async function searchTweet(query, count){
-    await client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).then(tweets => {
-        showTweet(tweets.statuses);
-        return tweets;
-    }).catch(err => {
+    const tweets = await client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).catch(err => {
         util.showErrorMsg(err);
     });
+    if (tweets){
+        showTweet(tweets.statuses);
+    };
+    return tweets;
+};
+
+/**
+ * ツイートのインデックスからIDを取得する
+ * @param  {Array}  tweets ツイートオブジェクト
+ * @param  {Number} index  ツイートのインデックス
+ * @return {String}        ツイートID
+ */
+function getTweetId(tweets, index){
+    if (index > tweets.length - 1){
+        console.error('Error: ツイートが存在しません'.brightRed);
+        return '';
+    }
+    return tweets[index].id_str;
+};
+
+/**
+ * ユーザーのプロフィールを表示
+ * @param {Object} user ユーザーオブジェクト
+ */
+function showUserInfo(user){
+    const width = process.stdout.columns;
+
+    // ユーザー名・ユーザーID
+    const userName = createHeader(user);
+    // 場所
+    const location = util.optimizeText(user.location);
+    // 説明
+    let description = util.optimizeText(user.description);
+    description = util.insert(description, (width - 14), '\n            ');
+    // URL
+    const url = user.url;
+    // アカウント作成日
+    let createdAt = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
+    createdAt =  `  created at ${createdAt}`;
+    // フォロー・フォロワー・ツイート数
+    let follower = user.followers_count;
+    follower = (user.following) ? `${follower} ${'[following]'.cyan}` : follower;
+    const follow = user.friends_count;
+    const tweetCount = `${user.statuses_count} tweets`;
+
+    // 表示する
+    console.log(`${'='.repeat(width)}\n`.rainbow);
+    console.log(`  ${userName}  ${tweetCount.brightCyan}\n`);
+    console.log(`      desc: ${description}`);
+    console.log(`    locate: ${location}`);
+    console.log(`       URL: ${url}`);
+    console.log(`    follow: ${follow}`);
+    console.log(`  follower: ${follower}`);
+    console.log(' '.repeat(width - createdAt.length) + createdAt.brightBlue);
+    console.log(`${'='.repeat(width)}`.rainbow);
 };
 
 /**
@@ -183,7 +237,6 @@ function showTweet(tweets){
 
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
-
         // 公式RTだった場合、RT元のツイートに置き換える
         let rtByUser;
         if (tweet.retweeted_status){
@@ -193,23 +246,22 @@ function showTweet(tweets){
 
         // ヘッダー
         const header = ` ${i}:`.brightWhite.bgBrightBlue + ' ' + createHeader(tweet.user);
-
         // 投稿内容
         const postText = createTweet(tweet);
-
         // フッター
         const fotter = createFotter(tweet);
 
         // 表示する
         if (rtByUser){
-            process.stdout.write(rtByUser.green + '\n');
+            console.log(rtByUser.green);
         };
-        process.stdout.write(header + '\n\n');
-        process.stdout.write(postText + '\n');
-        process.stdout.write(fotter + '\n');
-        process.stdout.write('-'.repeat(width) + '\n');
+        console.log(header + '\n');
+        console.log(postText);
+        console.log(fotter);
+        console.log('-'.repeat(width));
     };
 };
+
 
 /**
  * ヘッダーを作成
@@ -305,50 +357,14 @@ function createFotter(tweet){
     return fotter;
 };
 
-/**
- * ユーザーのプロフィールを表示
- * @param {Object} user ユーザーオブジェクト
- */
-function showUserInfo(user){
-    const width = process.stdout.columns;
-
-    // ユーザー名・ユーザーID
-    const userName = createHeader(user);
-    // 場所
-    const location = util.optimizeText(user.location);
-    // 説明
-    let description = util.optimizeText(user.description);
-    description = util.insert(description, (width - 14), '\n            ');
-    // URL
-    const url = user.url;
-    // アカウント作成日
-    let createdAt = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
-    createdAt =  `  created at ${createdAt}`;
-    // フォロー・フォロワー・ツイート数
-    let follower = user.followers_count;
-    follower = (user.following) ? `${follower} ${'[following]'.cyan}` : follower;
-    const follow = user.friends_count;
-    const tweetCount = `${user.statuses_count} tweets`;
-
-    // 表示する
-    process.stdout.write(`${'='.repeat(width)}\n\n`.rainbow);
-    process.stdout.write(`  ${userName}  ${tweetCount.brightCyan}\n\n`);
-    process.stdout.write(`      desc: ${description}\n`);
-    process.stdout.write(`    locate: ${location}\n`);
-    process.stdout.write(`       URL: ${url}\n`);
-    process.stdout.write(`    follow: ${follow}\n`);
-    process.stdout.write(`  follower: ${follower}\n`);
-    process.stdout.write(' '.repeat(width - createdAt.length) + createdAt.brightBlue + '\n');
-    process.stdout.write(`${'='.repeat(width)}\n`.rainbow);
-};
-
 module.exports = {
     tweetPost,
+    deleteTweet,
     favorite,
     retweet,
-    deleteTweet,
     getTimeline,
     getUserTimeline,
+    getTweetId,
     searchTweet,
     showUserInfo
 };
