@@ -183,10 +183,13 @@ async function searchTweet(query, count){
  * @return {String}        ツイートID
  */
 function getTweetId(tweets, index){
-    if (index > tweets.length - 1){
+    if (!index){
+        console.error('Error: インデックスが指定されていません'.brightRed);
+        return;
+    } else if (index > tweets.length - 1){
         console.error('Error: ツイートが存在しません'.brightRed);
         return '';
-    }
+    };
     return tweets[index].id_str;
 };
 

@@ -42,6 +42,23 @@ program
         console.log('  $ nyaan tw -n -m nyaan.png'.brightMagenta);
     });
 
+// ツイートを削除する
+program
+    .command('deltweet [index]')
+    .alias('dtw')
+    .description('ツイートを削除します')
+    .action(async (index) => {
+        const tweetId = tweet.getTweetId(tweetsData, index);
+        if (!tweetId){
+            return;
+        };
+        await tweet.deleteTweet(tweetId);
+    }).on('--help', () => {
+        console.log('\nExamples:');
+        console.log('  $ nyaan deltweet 1'.brightMagenta);
+        console.log('  $ nyaan dtw 10'.brightMagenta);
+    });
+
 // タイムラインを見る
 program
     .command('timeline [counts]')
@@ -59,10 +76,14 @@ program
 
 // 指定ユーザーのタイムラインを見る
 program
-    .command('userTimeline <userId> [counts]')
+    .command('userTimeline [userId] [counts]')
     .alias('utl')
     .description('指定したユーザーのタイムラインを表示します (最大200件)')
     .action(async (userId, counts) => {
+        if (!userId){
+            console.error('Error: ユーザーIDが指定されていません'.brightRed);
+            return;
+        };
         userId = userId.replace(/@|＠/, '');
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const timeline = await tweet.getUserTimeline(userId, counts);
@@ -75,10 +96,14 @@ program
 
 // キーワードでツイートを探す
 program
-    .command('search <keyword> [counts]')
+    .command('search [keyword] [counts]')
     .alias('sch')
     .description('キーワードからツイートを検索します (最大200件)')
     .action(async (keyword, counts) => {
+        if (!keyword){
+            console.error('Error: キーワードがありません'.brightRed);
+            return;
+        };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const tweets = await tweet.searchTweet(keyword, counts);
         tweetsData = (tweets) ? tweets : tweetsData;
@@ -90,7 +115,7 @@ program
 
 // ふぁぼる
 program
-    .command('favorite <index>')
+    .command('favorite [index]')
     .alias('fav')
     .description('いいね！します')
     .action(async (index) => {
@@ -107,7 +132,7 @@ program
 
 // ふぁぼを取り消す
 program
-    .command('unfavorite <index>')
+    .command('unfavorite [index]')
     .alias('ufav')
     .description('いいね！を取り消します')
     .action(async (index) => {
@@ -124,7 +149,7 @@ program
 
 // リツイートする
 program
-    .command('retweet <index>')
+    .command('retweet [index]')
     .alias('rt')
     .description('リツイートします')
     .action(async (index) => {
@@ -141,7 +166,7 @@ program
 
 // リツイートを取り消す
 program
-    .command('unretweet <index>')
+    .command('unretweet [index]')
     .alias('urt')
     .description('リツイートを取り消します')
     .action(async (index) => {
