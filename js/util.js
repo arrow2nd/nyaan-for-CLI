@@ -14,7 +14,7 @@ function readlineSync(){
             output: process.stdout
         });
         // 入力受付
-        rl.question('nyaan >'.cyan + '>'.brightCyan + '> '.brightWhite, (input) => {
+        rl.question('nyaan '.bold.cyan + '>'.brightWhite + '>'.brightCyan + '> '.cyan, (input) => {
             rl.close();
             resolve(input.split(' '));
         });
