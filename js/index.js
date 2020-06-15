@@ -243,7 +243,13 @@ program.command('exit').description('nyaanを終了します');
 
 // コマンドがあれば解析、なければ対話型のやつを開始
 if (process.argv[2]){
-    program.parse(process.argv);
+    try {
+        program.parse(process.argv);
+    } catch(err) {
+        if (err.exitCode){
+            console.error(err);
+        };
+    };
 } else {
     interactive();
 };
