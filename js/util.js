@@ -60,30 +60,45 @@ function getStrWidth(text){
  * @return {String}        編集後の文字列
  */
 function insert(text, length, add){
-    let index, len, start = 0;
-    let result = '', rest = text;
-
+    let start = 0, result = '', rest = text;
     while (length < getStrWidth(rest)){
-        // 文字の表示幅を考慮して範囲を切り出し
-        for (index = start, len = length; len > 0; index++, len--){
-            const value = text[index];
-            if (!value){
-                break;
-            } else if (getStrWidth(value) == 2){
-                len--;
-            };
-            result += value;
-        };
+        // 範囲切り出し
+        result += strCat(text, start, length, 0);
+        // 次の切り出し位置をズラす
+        start = result.length;
         // 指定の文字を追加
         result += add;
-        // 切り出し位置をズラす
-        start = index;
         // 残り
         rest = text.slice(start);
     };
-
     // 残りの文字列を結合
     result += rest;
+    return result;
+};
+
+/**
+ * 文字の表示幅を考慮して範囲を切り出す
+ * @param  {String}  text   文字列
+ * @param  {Number}  start  開始位置
+ * @param  {Number}  length 切り出す長さ
+ * @param  {boolean} mode   …を末尾につけるか
+ * @return {String}         切り出した文字列
+ */
+function strCat(text, start, length, mode){
+    let index, len, result = '';
+    for (index = start, len = length; len > 0; index++, len--){
+        const value = text[index];
+        if (!value){
+            break;
+        } else if (getStrWidth(value) == 2){
+            len--;
+        };
+        result += value;
+    };
+    // …
+    if (mode && text.length != index){
+        result += '…';
+    };
     return result;
 };
 
@@ -140,6 +155,7 @@ module.exports = {
     sortTag,
     getStrWidth,
     insert,
+    strCat,
     optimizeText,
     showErrorMsg
 };

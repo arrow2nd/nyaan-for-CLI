@@ -87,8 +87,9 @@ async function deleteTweet(tweetId){
         util.showErrorMsg(err);
     });
     if (tweet){
-        console.log('削除しました！'.cyan);
-        showTweet([tweet], 1);
+        const width = process.stdout.columns - 18;
+        const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
+        console.log('削除しました！: '.cyan + text);
     };
 };
 
@@ -103,9 +104,10 @@ async function favorite(tweetId, mode){
         util.showErrorMsg(err);
     });
     if (tweet){
-        const msg = (mode) ? 'いいねを取り消しました！' : 'いいねしました！';
-        console.log(msg.cyan);
-        showTweet([tweet], 1);
+        const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
+        const width = process.stdout.columns - util.getStrWidth(msg) - 2;
+        const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
+        console.log(msg.cyan + text);
     };
 };
 
@@ -120,9 +122,10 @@ async function retweet(tweetId, mode){
         util.showErrorMsg(err);
     });
     if (tweet){
-        const msg = (mode) ? 'リツイートを取り消しました！' : 'リツイートしました！';
-        console.log(msg.cyan);
-        showTweet([tweet], 1);
+        const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
+        const width = process.stdout.columns - util.getStrWidth(msg) - 2;
+        const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
+        console.log(msg.cyan + text);
     };
 };
 
@@ -140,7 +143,7 @@ async function getTimeline(count){
         util.showErrorMsg(err);
     });
     if (tweets) {
-        showTweet(tweets, 0);
+        showTweet(tweets);
     };
     return tweets;
 };
@@ -164,7 +167,7 @@ async function getUserTimeline(userName, count){
         util.showErrorMsg(err);
     });
     if (tweets){
-        showTweet(tweets, 0);
+        showTweet(tweets);
         showUserInfo(tweets[0].user);
     };
     return tweets;
@@ -181,7 +184,7 @@ async function searchTweet(query, count){
         util.showErrorMsg(err);
     });
     if (tweets){
-        showTweet(tweets.statuses, 0);
+        showTweet(tweets.statuses);
     };
     return tweets;
 };
@@ -243,11 +246,10 @@ function showUserInfo(user){
 /**
  * ツイートを表示
  * @param {Array}   tweets    ツイートオブジェクト
- * @param {Boolean} emphasis  強調表示するか
  */
-function showTweet(tweets, emphasis){
+function showTweet(tweets){
     const width = process.stdout.columns;
-    const hr = (emphasis) ? '='.repeat(width).brightGreen : '-'.repeat(width);
+    const hr = '-'.repeat(width);
     console.log(hr);
 
     for (let i = tweets.length - 1;i >= 0;i--){
@@ -260,7 +262,7 @@ function showTweet(tweets, emphasis){
         };
 
         // ヘッダー
-        const index = (emphasis) ? ` ${i}:`.brightWhite.bgGreen : ` ${i}:`.brightWhite.bgBrightBlue;
+        const index = ` ${i}:`.brightWhite.bgBrightBlue;
         const header = index + ' ' + createHeader(tweet.user);
         // 投稿内容
         const postText = createTweet(tweet);
