@@ -8,22 +8,20 @@ const util = require('./util.js');
 // どうしてこうなった
 let tweetsData = [];
 
+// process.exitをオーバーライド
+program.exitOverride();
+
 // バージョン
-program.version('1.0.0', '-v, --version')
+program.version('1.0.0', '-v, --version');
 
 // 名前と大体の使い方
 program.name('nyaan').usage('command [options]');
 
 // コマンドが無い場合のメッセージ
 program.on('command:*', (operands) => {
-    console.error(`Error: ${operands[0]}は有効なコマンドではありません`);
+    console.error(`Error: "${operands[0]}" は有効なコマンドではありません`);
     return;
 });
-
-// 終了
-program
-    .command('exit')
-    .description('nyaanを終了します')
 
 // ツイートする
 program
@@ -179,6 +177,9 @@ program
         console.log('  $ nyaan urt 10'.brightMagenta);
     });
 
+ // 終了コマンド
+program.command('exit').description('nyaanを終了します');
+
 
 // コマンドがあれば解析、なければ対話型のやつを開始
 if (process.argv[2]){
@@ -187,8 +188,6 @@ if (process.argv[2]){
     interactive();
 };
 
-
-// TODO: --helpコマンドを入力すると終了する問題
 
 /**
  * 無理やり対話型にしてるやつ
@@ -202,6 +201,12 @@ async function interactive(){
         // 入力待ち
         array = await util.readlineSync();
         // コマンド実行
-        await program.parseAsync(array, {from: 'user'});
+        try {
+            await program.parseAsync(array, {from: 'user'});
+        } catch(err) {
+            if (err.exitCode){
+                console.error(err);
+            };
+        };
     } while(array[0] != 'exit');
 };
