@@ -8,7 +8,7 @@ const moment = require('moment');
 const util = require('./util.js');
 const Twitter = require('twitter');
 
-dotenv.config();
+dotenv.config({path: path.join(__dirname, "../.env")});
 
 // 認証
 const client = new Twitter({
