@@ -48,7 +48,9 @@ program
     .action(async (text, options) => {
         const path = options.media || '';
         text = (options.nyaan || !text) ? 'にゃーん' : text;
-        await tweet.tweetPost(text, path);
+        await tweet.tweetPost(text, path).catch(err => {
+            console.error(err);
+        });
     }).on('--help', () => {
         console.log('\nExamples:');
         console.log('  $ nyaan tweet にゃーん'.brightMagenta);
@@ -66,7 +68,9 @@ program
         if (!tweetId){
             return;
         };
-        await tweet.deleteTweet(tweetId);
+        await tweet.deleteTweet(tweetId).catch(err => {
+            console.error(err);
+        });
     }).on('--help', () => {
         console.log('\nExamples:');
         console.log('  $ nyaan deltweet 1'.brightMagenta);
@@ -81,7 +85,9 @@ program
     .usage('[取得件数(最大200)]')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await tweet.getTimeline(counts).catch(err => {console.error(err)});
+        const timeline = await tweet.getTimeline(counts).catch(err => {
+            console.error(err);
+        });
         tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -100,7 +106,9 @@ program
             userId = userId.replace(/@|＠/, '');
         };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await tweet.getUserTimeline(userId, counts).catch(err => {console.error(err)});
+        const timeline = await tweet.getUserTimeline(userId, counts).catch(err => {
+            console.error(err);
+        });
         tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -120,7 +128,9 @@ program
             return;
         };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const tweets = await tweet.searchTweet(keyword, counts).catch(err => {console.error(err)});
+        const tweets = await tweet.searchTweet(keyword, counts).catch(err => {
+            console.error(err);
+        });
         tweetsData = (tweets) ? tweets.statuses : tweetsData;
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -137,7 +147,9 @@ program
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
-            await tweet.favorite(tweetId, 0);
+            await tweet.favorite(tweetId, 0).catch(err => {
+                console.error(err);
+            });
         };
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -154,7 +166,9 @@ program
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
-            await tweet.favorite(tweetId, 1);
+            await tweet.favorite(tweetId, 1).catch(err => {
+                console.error(err);
+            });
         };
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -171,7 +185,9 @@ program
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
-            await tweet.retweet(tweetId, 0);
+            await tweet.retweet(tweetId, 0).catch(err => {
+                console.error(err);
+            });
         };
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -188,7 +204,9 @@ program
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
-            await tweet.retweet(tweetId, 1);
+            await tweet.retweet(tweetId, 1).catch(err => {
+                console.error(err);
+            });
         };
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -205,8 +223,12 @@ program
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
-            await tweet.favorite(tweetId, 0);
-            await tweet.retweet(tweetId, 0);
+            await tweet.favorite(tweetId, 0).catch(err => {
+                console.error(err);
+            });
+            await tweet.retweet(tweetId, 0).catch(err => {
+                console.error(err);
+            });
         };
     }).on('--help', () => {
         console.log('\nExamples:');
