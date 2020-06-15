@@ -71,14 +71,10 @@ async function tweetPost(tweetText, mediaPaths){
         util.showErrorMsg(err);
     });
     if (tweet){
-        /*
         console.log('ツイートしました！: '.cyan + tweet.text);
         if (mediaPaths){
             console.log('添付画像: '.cyan + uploads);
         };
-        */
-       console.log('▼ ツイートしました！');
-       showTweet([tweet]);
     };
 };
 
@@ -91,9 +87,8 @@ async function deleteTweet(tweetId){
         util.showErrorMsg(err);
     });
     if (tweet){
-//        console.log('削除しました！: '.cyan + tweet.text);
-        console.log('▼ 削除しました！');
-        showTweet([tweet]);
+        console.log('削除しました！:'.cyan);
+        showTweet([tweet], 1);
     };
 };
 
@@ -108,10 +103,9 @@ async function favorite(tweetId, mode){
         util.showErrorMsg(err);
     });
     if (tweet){
-        const msg = (mode) ? 'いいねを取り消しました！' : 'いいねしました！';
-        //console.log(msg.cyan + `(${tweet.user.name}さんのツイート)`);
-        console.log(`▼ ${msg.cyan}`);
-        showTweet([tweet]);
+        const msg = (mode) ? 'いいねを取り消しました！:' : 'いいねしました！:';
+        console.log(msg.cyan);
+        showTweet([tweet], 1);
     };
 };
 
@@ -126,10 +120,9 @@ async function retweet(tweetId, mode){
         util.showErrorMsg(err);
     });
     if (tweet){
-        const msg = (mode) ? 'リツイートを取り消しました！' : 'リツイートしました！';
-//        console.log(msg.cyan + `(${tweet.user.name}さんのツイート)`);
-        console.log(`▼ ${msg.cyan}`);
-        showTweet([tweet]);
+        const msg = (mode) ? 'リツイートを取り消しました！:' : 'リツイートしました！:';
+        console.log(msg.cyan);
+        showTweet([tweet], 1);
     };
 };
 
@@ -147,7 +140,7 @@ async function getTimeline(count){
         util.showErrorMsg(err);
     });
     if (tweets) {
-        showTweet(tweets);
+        showTweet(tweets, 0);
     };
     return tweets;
 };
@@ -171,7 +164,7 @@ async function getUserTimeline(userName, count){
         util.showErrorMsg(err);
     });
     if (tweets){
-        showTweet(tweets);
+        showTweet(tweets, 0);
         showUserInfo(tweets[0].user);
     };
     return tweets;
@@ -188,7 +181,7 @@ async function searchTweet(query, count){
         util.showErrorMsg(err);
     });
     if (tweets){
-        showTweet(tweets.statuses);
+        showTweet(tweets.statuses, 0);
     };
     return tweets;
 };
@@ -249,11 +242,13 @@ function showUserInfo(user){
 
 /**
  * ツイートを表示
- * @param {Array} tweets ツイートオブジェクト
+ * @param {Array}   tweets    ツイートオブジェクト
+ * @param {Boolean} emphasis  強調表示するか
  */
-function showTweet(tweets){
+function showTweet(tweets, emphasis){
     const width = process.stdout.columns;
-    console.log('-'.repeat(width));
+    const hr = (emphasis) ? '='.repeat(width).rainbow : '-'.repeat(width);
+    console.log(hr);
 
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
@@ -265,7 +260,8 @@ function showTweet(tweets){
         };
 
         // ヘッダー
-        const header = ` ${i}:`.brightWhite.bgBrightBlue + ' ' + createHeader(tweet.user);
+        const index = (emphasis) ? ' ok:'.brightWhite.bgGreen : ` ${i}:`.brightWhite.bgBrightBlue;
+        const header = index + ' ' + createHeader(tweet.user);
         // 投稿内容
         const postText = createTweet(tweet);
         // フッター
@@ -278,7 +274,7 @@ function showTweet(tweets){
         console.log(header + '\n');
         console.log(postText);
         console.log(fotter);
-        console.log('-'.repeat(width));
+        console.log(hr);
     };
 };
 
@@ -355,7 +351,7 @@ function createFotter(tweet){
     if (favCount){
         favText = `fav: ${favCount}`;
         textCount += favText.length + 1;
-        favText = (tweet.favorited) ? `${favText.black.bgBrightMagenta} ` : `${favText.brightMagenta} `;
+        favText = (tweet.favorited) ? favText.black.bgBrightMagenta + ' ' : favText.brightMagenta + ' ';
     };
     // RT
     const rtCount = tweet.retweet_count;
@@ -363,18 +359,20 @@ function createFotter(tweet){
     if (rtCount){
         rtText = `RT: ${rtCount}`;
         textCount += rtText.length + 1;
-        rtText= (tweet.retweeted) ? `${rtText.black.bgBrightGreen} ` : `${rtText.brightGreen} `;
+        rtText = (tweet.retweeted) ? rtText.black.bgBrightGreen + ' ' : rtText.brightGreen + ' ';
     };
+    // いいねとRT情報
+    const impression = (textCount) ? ' '.repeat(width - textCount) + `${favText}${rtText}\n` : '';
+
     // via
     const start = tweet.source.indexOf('>') + 1;
     const end = tweet.source.indexOf('</a>');
-    let via = `  via ${tweet.source.slice(start, end)}`;
-    textCount += util.getStrWidth(via);
+    let via = `via ${tweet.source.slice(start, end)} `;
     // フッター
-    let postTime = ` ${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}`;
-    textCount += postTime.length;
-    const fotter = ' '.repeat(width - textCount) + favText + rtText + postTime.cyan + via.brightBlue;
-    return fotter;
+    const postTime = `${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')} `;
+    textCount = postTime.length + util.getStrWidth(via);
+    const fotter = ' '.repeat(width - textCount) + postTime.cyan + via.brightBlue;
+    return impression + fotter;
 };
 
 module.exports = {
