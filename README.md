@@ -4,6 +4,10 @@
 
 ![git-nyaan](https://user-images.githubusercontent.com/44780846/84656398-94ae1280-af4d-11ea-8c63-f7291ce09748.gif)
 
+## これが欲しかった…！
+
+```nyaan tw```と打つだけで「にゃーん」ができます
+
 ## できること
 - ツイートの投稿/削除
 - いいね！/リツイート
