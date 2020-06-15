@@ -64,7 +64,7 @@ program
     .description('タイムラインを表示します (最大200件)')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await tweet.getTimeline(counts);
+        const timeline = await tweet.getTimeline(counts).catch(err => {console.error(err)});
         tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -82,7 +82,7 @@ program
             userId = userId.replace(/@|＠/, '');
         };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await tweet.getUserTimeline(userId, counts);
+        const timeline = await tweet.getUserTimeline(userId, counts).catch(err => {console.error(err)});
         tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -101,7 +101,7 @@ program
             return;
         };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const tweets = await tweet.searchTweet(keyword, counts);
+        const tweets = await tweet.searchTweet(keyword, counts).catch(err => {console.error(err)});
         tweetsData = (tweets) ? tweets : tweetsData;
     }).on('--help', () => {
         console.log('\nExamples:');
@@ -177,7 +177,7 @@ program
         console.log('  $ nyaan urt 10'.brightMagenta);
     });
 
- // 終了コマンド
+// 終了コマンド
 program.command('exit').description('nyaanを終了します');
 
 
@@ -194,12 +194,12 @@ if (process.argv[2]){
  */
 async function interactive(){
     // とりあえずタイムライン表示
-    tweetsData = await tweet.getTimeline(20);
+    tweetsData = await tweet.getTimeline(20).catch(err => {console.error(err)});
     // ループ
     let array = '';
     do {
         // 入力待ち
-        array = await util.readlineSync();
+        array = await util.readlineSync().catch(err => {console.error(err)});
         // コマンド実行
         try {
             await program.parseAsync(array, {from: 'user'});

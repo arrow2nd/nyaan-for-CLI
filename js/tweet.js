@@ -67,14 +67,19 @@ async function tweetPost(tweetText, mediaPaths){
     };
 
     // ツイートする
-    await client.post('statuses/update', status).then(tweet => {
+    const tweet = await client.post('statuses/update', status).catch(err => {
+        util.showErrorMsg(err);
+    });
+    if (tweet){
+        /*
         console.log('ツイートしました！: '.cyan + tweet.text);
         if (mediaPaths){
             console.log('添付画像: '.cyan + uploads);
         };
-    }).catch(err => {
-        util.showErrorMsg(err);
-    });
+        */
+       console.log('▼ ツイートしました！');
+       showTweet([tweet]);
+    };
 };
 
 /**
@@ -82,11 +87,14 @@ async function tweetPost(tweetText, mediaPaths){
  * @param {String} tweetId ツイートID
  */
 async function deleteTweet(tweetId){
-    await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).then(tweet => {
-        console.log('削除しました！: '.cyan + tweet.text);
-    }).catch(err => {
+    const tweet = await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => {
         util.showErrorMsg(err);
     });
+    if (tweet){
+//        console.log('削除しました！: '.cyan + tweet.text);
+        console.log('▼ 削除しました！');
+        showTweet([tweet]);
+    };
 };
 
 /**
@@ -96,12 +104,15 @@ async function deleteTweet(tweetId){
  */
 async function favorite(tweetId, mode){
     const type = ['create', 'destroy'];
-    await client.post(`favorites/${type[mode]}`, {id: tweetId}).then(tweet => {
-        const msg = (mode) ? 'いいねを取り消しました！ ' : 'いいねしました！ ';
-        console.log(msg.cyan + `(${tweet.user.name}さんのツイート)`);
-    }).catch(err => {
+    const tweet = await client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
         util.showErrorMsg(err);
     });
+    if (tweet){
+        const msg = (mode) ? 'いいねを取り消しました！' : 'いいねしました！';
+        //console.log(msg.cyan + `(${tweet.user.name}さんのツイート)`);
+        console.log(`▼ ${msg.cyan}`);
+        showTweet([tweet]);
+    };
 };
 
 /**
@@ -111,12 +122,15 @@ async function favorite(tweetId, mode){
  */
 async function retweet(tweetId, mode){
     const type = ['retweet', 'unretweet'];
-    await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).then(tweet => {
-        const msg = (mode) ? 'リツイートを取り消しました！ ' : 'リツイートしました！ ';
-        console.log(msg.cyan + `(${tweet.user.name}さんのツイート)`);
-    }).catch(err => {
+    const tweet = await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
         util.showErrorMsg(err);
     });
+    if (tweet){
+        const msg = (mode) ? 'リツイートを取り消しました！' : 'リツイートしました！';
+//        console.log(msg.cyan + `(${tweet.user.name}さんのツイート)`);
+        console.log(`▼ ${msg.cyan}`);
+        showTweet([tweet]);
+    };
 };
 
 /**
@@ -235,11 +249,11 @@ function showUserInfo(user){
 
 /**
  * ツイートを表示
- * @param {Object} tweets ツイートオブジェクト
+ * @param {Array} tweets ツイートオブジェクト
  */
 function showTweet(tweets){
     const width = process.stdout.columns;
-    process.stdout.write('-'.repeat(width) + '\n');
+    console.log('-'.repeat(width));
 
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
@@ -371,6 +385,5 @@ module.exports = {
     getTimeline,
     getUserTimeline,
     getTweetId,
-    searchTweet,
-    showUserInfo
+    searchTweet
 };
