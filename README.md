@@ -24,7 +24,7 @@ zipをダウンロード or ```git clone git@github.com:arrow2nd/nyaan-for-CLI.g
 
 ### 3.アクセストークンの設定
 
-[ここ](https://developer.twitter.com/en/apps)からコンシューマーキー、コンシュマーシークレット、アクセストークン、アクセストークンシークレットを取得。
+[ここ](https://developer.twitter.com/en/apps)からコンシューマーキー、コンシューマーシークレット、アクセストークン、アクセストークンシークレットを取得。
 
 .env-expampleを参考に.envファイルを作成する。
 
