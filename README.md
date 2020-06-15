@@ -30,13 +30,14 @@ zipをダウンロード or ```git clone git@github.com:arrow2nd/nyaan-for-CLI.g
 
 [ここ](https://developer.twitter.com/en/apps)からコンシューマーキー、コンシューマーシークレット、アクセストークン、アクセストークンシークレットを取得。
 
-.env-expampleを参考に.envファイルを作成する。
+.env-exampleファイルを参考に.envファイルを作成する。
 
 ### 3.グローバルにインストール
 
 ```yarn global add file:$PWD ``` 
 
 これでおしまい！
+
 
 ## 使い方メモ
 
@@ -48,3 +49,4 @@ zipをダウンロード or ```git clone git@github.com:arrow2nd/nyaan-for-CLI.g
 
 ## 注意
 - セキュリティの問題等があるかもしれません。（いないとは思いますが）利用される場合は、自己責任でお願いします。
+- .envが流出すると一巻の終わりです。ご注意下さい。
