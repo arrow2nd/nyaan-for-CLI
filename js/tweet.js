@@ -260,7 +260,7 @@ function showTweet(tweets, emphasis){
         };
 
         // ヘッダー
-        const index = (emphasis) ? ' ok:'.brightWhite.bgGreen : ` ${i}:`.brightWhite.bgBrightBlue;
+        const index = (emphasis) ? ` ${i}:`.brightWhite.bgGreen : ` ${i}:`.brightWhite.bgBrightBlue;
         const header = index + ' ' + createHeader(tweet.user);
         // 投稿内容
         const postText = createTweet(tweet);
@@ -351,15 +351,15 @@ function createFotter(tweet){
     if (favCount){
         favText = `fav: ${favCount}`;
         textCount += favText.length + 1;
-        favText = (tweet.favorited) ? favText.black.bgBrightMagenta + ' ' : favText.brightMagenta + ' ';
+        favText = (tweet.favorited) ? `${favText.black.bgBrightMagenta} ` : `${favText.brightMagenta} `;
     };
     // RT
     const rtCount = tweet.retweet_count;
     let rtText = '';
     if (rtCount){
         rtText = `RT: ${rtCount}`;
-        textCount += rtText.length + 1;
-        rtText = (tweet.retweeted) ? rtText.black.bgBrightGreen + ' ' : rtText.brightGreen + ' ';
+        textCount += rtText.length + 2;
+        rtText = (tweet.retweeted) ? ` ${rtText.black.bgBrightGreen} ` : ` ${rtText.brightGreen} `;
     };
     // いいねとRT情報
     const impression = (textCount) ? ' '.repeat(width - textCount) + `${favText}${rtText}\n` : '';
@@ -369,7 +369,7 @@ function createFotter(tweet){
     const end = tweet.source.indexOf('</a>');
     let via = `via ${tweet.source.slice(start, end)} `;
     // フッター
-    const postTime = `${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')} `;
+    const postTime = `${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}  `;
     textCount = postTime.length + util.getStrWidth(via);
     const fotter = ' '.repeat(width - textCount) + postTime.cyan + via.brightBlue;
     return impression + fotter;
