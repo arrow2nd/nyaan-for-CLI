@@ -87,7 +87,7 @@ async function deleteTweet(tweetId){
         util.showErrorMsg(err);
     });
     if (tweet){
-        console.log('削除しました！:'.cyan);
+        console.log('削除しました！'.cyan);
         showTweet([tweet], 1);
     };
 };
@@ -103,7 +103,7 @@ async function favorite(tweetId, mode){
         util.showErrorMsg(err);
     });
     if (tweet){
-        const msg = (mode) ? 'いいねを取り消しました！:' : 'いいねしました！:';
+        const msg = (mode) ? 'いいねを取り消しました！' : 'いいねしました！';
         console.log(msg.cyan);
         showTweet([tweet], 1);
     };
@@ -120,7 +120,7 @@ async function retweet(tweetId, mode){
         util.showErrorMsg(err);
     });
     if (tweet){
-        const msg = (mode) ? 'リツイートを取り消しました！:' : 'リツイートしました！:';
+        const msg = (mode) ? 'リツイートを取り消しました！' : 'リツイートしました！';
         console.log(msg.cyan);
         showTweet([tweet], 1);
     };
@@ -247,7 +247,7 @@ function showUserInfo(user){
  */
 function showTweet(tweets, emphasis){
     const width = process.stdout.columns;
-    const hr = (emphasis) ? '='.repeat(width).rainbow : '-'.repeat(width);
+    const hr = (emphasis) ? '='.repeat(width).brightGreen : '-'.repeat(width);
     console.log(hr);
 
     for (let i = tweets.length - 1;i >= 0;i--){
