@@ -87,7 +87,7 @@ async function deleteTweet(tweetId){
         util.showErrorMsg(err);
     });
     if (tweet){
-        const width = process.stdout.columns - 18;
+        const width = process.stdout.columns - 20;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
         console.log('削除しました！: '.cyan + text);
     };
@@ -105,7 +105,7 @@ async function favorite(tweetId, mode){
     });
     if (tweet){
         const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
-        const width = process.stdout.columns - util.getStrWidth(msg) - 2;
+        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
         console.log(msg.cyan + text);
     };
@@ -123,7 +123,7 @@ async function retweet(tweetId, mode){
     });
     if (tweet){
         const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
-        const width = process.stdout.columns - util.getStrWidth(msg) - 2;
+        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
         console.log(msg.cyan + text);
     };
