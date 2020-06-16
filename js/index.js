@@ -135,7 +135,7 @@ program
     }).on('--help', () => {
         console.log('\nExamples:');
         console.log('  $ nyaan search 三毛猫'.brightMagenta);
-        console.log('  $ nyaan sch "calico cat" 50'.brightMagenta);
+        console.log('  $ nyaan sch cat 50'.brightMagenta);
     });
 
 // ふぁぼる
