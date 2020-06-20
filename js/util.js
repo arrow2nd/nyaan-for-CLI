@@ -115,10 +115,10 @@ function optimizeText(text){
 };
 
 /**
- * エラー内容を表示
+ * TwitterAPIのエラー内容を表示
  * @param {Object} error エラーオブジェクト
  */
-function showErrorMsg(error){
+function showAPIErrorMsg(error){
     const err = {
         32: '処理を完了できませんでした',
         34: '見つかりませんでした',
@@ -151,6 +151,27 @@ function showErrorMsg(error){
     console.log(`Error: ${msg}(${code})`.brightRed);
 };
 
+/**
+ * Commanderのエラー内容を表示
+ * @param {Object} error エラーオブジェクト
+ */
+function showCMDErrorMsg(error){
+    const ignore = [
+        'commander.unknownCommand',
+        'commander.unknownOption' 
+    ];
+
+    // 無視する
+    for (let code of ignore){
+        if (code == error.code){
+            return;
+        };
+    };
+
+    // エラーを表示
+    console.log(error);
+};
+
 module.exports = {
     readlineSync,
     sortTag,
@@ -158,5 +179,6 @@ module.exports = {
     insert,
     strCat,
     optimizeText,
-    showErrorMsg
+    showAPIErrorMsg,
+    showCMDErrorMsg
 };

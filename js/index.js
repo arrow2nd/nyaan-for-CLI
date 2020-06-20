@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 'use strict';
+const packageJson = require("../package.json");
 const program = require('commander');
 const colors = require('colors');
 const tweet = require('./tweet.js');
@@ -12,16 +13,10 @@ let tweetsData = [];
 program.exitOverride();
 
 // バージョン
-program.version('1.0.0', '-v, --version');
+program.version(packageJson.version, '-v, --version');
 
 // 名前と大体の使い方
 program.name('nyaan').usage('command [オプション]');
-
-// コマンドが無い場合のメッセージ
-program.on('command:*', (operands) => {
-    console.error(`Error: "${operands[0]}" は有効なコマンドではありません`);
-    return;
-});
 
 // コンソールをクリアする
 program
@@ -247,7 +242,7 @@ if (process.argv[2]){
         program.parse(process.argv);
     } catch(err) {
         if (err.exitCode){
-            console.error(err);
+            util.showCMDErrorMsg(err);
         };
     };
 } else {
@@ -271,7 +266,7 @@ async function interactive(){
             await program.parseAsync(array, {from: 'user'});
         } catch(err) {
             if (err.exitCode){
-                console.error(err);
+                util.showCMDErrorMsg(err);
             };
         };
     } while(array[0] != 'exit');

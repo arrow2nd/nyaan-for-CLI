@@ -68,7 +68,7 @@ async function tweetPost(tweetText, mediaPaths){
 
     // ツイートする
     const tweet = await client.post('statuses/update', status).catch(err => {
-        util.showErrorMsg(err);
+        util.showAPIErrorMsg(err);
     });
     if (tweet){
         console.log('ツイートしました！: '.cyan + tweet.text);
@@ -84,7 +84,7 @@ async function tweetPost(tweetText, mediaPaths){
  */
 async function deleteTweet(tweetId){
     const tweet = await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => {
-        util.showErrorMsg(err);
+        util.showAPIErrorMsg(err);
     });
     if (tweet){
         const width = process.stdout.columns - 20;
@@ -101,7 +101,7 @@ async function deleteTweet(tweetId){
 async function favorite(tweetId, mode){
     const type = ['create', 'destroy'];
     const tweet = await client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
-        util.showErrorMsg(err);
+        util.showAPIErrorMsg(err);
     });
     if (tweet){
         const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
@@ -119,7 +119,7 @@ async function favorite(tweetId, mode){
 async function retweet(tweetId, mode){
     const type = ['retweet', 'unretweet'];
     const tweet = await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
-        util.showErrorMsg(err);
+        util.showAPIErrorMsg(err);
     });
     if (tweet){
         const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
@@ -140,7 +140,7 @@ async function getTimeline(count){
         exclude_replies: true,
     };
     const tweets = await client.get('statuses/home_timeline', param).catch(err => {
-        util.showErrorMsg(err);
+        util.showAPIErrorMsg(err);
     });
     if (tweets) {
         showTweet(tweets);
@@ -164,7 +164,7 @@ async function getUserTimeline(userName, count){
         param.screen_name = '@' + userName;
     };
     const tweets = await client.get('statuses/user_timeline', param).catch(err => {
-        util.showErrorMsg(err);
+        util.showAPIErrorMsg(err);
     });
     if (tweets){
         showTweet(tweets);
@@ -181,7 +181,7 @@ async function getUserTimeline(userName, count){
  */
 async function searchTweet(query, count){
     const tweets = await client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).catch(err => {
-        util.showErrorMsg(err);
+        util.showAPIErrorMsg(err);
     });
     if (tweets){
         showTweet(tweets.statuses);
