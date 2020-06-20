@@ -5,6 +5,7 @@ const program = require('commander');
 const colors = require('colors');
 const tweet = require('./tweet.js');
 const util = require('./util.js');
+const Twitter = require("twitter");
 
 // どうしてこうなった
 let tweetsData = [];
@@ -23,7 +24,6 @@ program
     .command('clear')
     .alias('cls')
     .description('コンソールをクリアします')
-    .usage(' ')
     .action(() => {
         console.clear();
     }).on('--help', () => {
@@ -37,7 +37,6 @@ program
     .command('tweet [text]')
     .alias('tw')
     .description('ツイートします (スペースを含む文は"で囲んでね)')
-    .usage('[テキスト] [オプション]')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .option('-n, --nyaan', '鳴き声を世界に発信します')
     .action(async (text, options) => {
@@ -60,7 +59,6 @@ program
     .command('reply [index] [text]')
     .alias('rp')
     .description('リプライします (スペースを含む文は"で囲んでね)')
-    .usage('<インデックス> <テキスト> [オプション]')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .option('-n, --nyaan', '鳴き声で返信します')
     .action(async (index, text, options) => {
@@ -89,7 +87,6 @@ program
     .command('deltweet [index]')
     .alias('dtw')
     .description('ツイートを削除します')
-    .usage('<インデックス>')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (!tweetId){
@@ -109,7 +106,6 @@ program
     .command('timeline [counts]')
     .alias('tl')
     .description('タイムラインを表示します')
-    .usage('[取得件数(最大200)]')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const timeline = await tweet.getTimeline(counts).catch(err => {
@@ -127,7 +123,6 @@ program
     .command('usertimeline [userId] [counts]')
     .alias('utl')
     .description('指定したユーザーのタイムラインを表示します')
-    .usage('[ユーザーID] [取得件数(最大200)]')
     .action(async (userId, counts) => {
         if (userId){
             userId = userId.replace(/@|＠/, '');
@@ -148,7 +143,6 @@ program
     .command('search [keyword] [counts]')
     .alias('sch')
     .description('キーワードからツイートを検索します')
-    .usage('<キーワード> [取得件数(最大200)]')
     .action(async (keyword, counts) => {
         if (!keyword){
             console.error('Error: キーワードがありません'.brightRed);
@@ -170,7 +164,6 @@ program
     .command('favorite [index]')
     .alias('fav')
     .description('いいね！します')
-    .usage('<インデックス>')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
@@ -189,7 +182,6 @@ program
     .command('unfavorite [index]')
     .alias('ufav')
     .description('いいね！を取り消します')
-    .usage('<インデックス>')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
@@ -208,7 +200,6 @@ program
     .command('retweet [index]')
     .alias('rt')
     .description('リツイートします')
-    .usage('<インデックス>')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
@@ -227,7 +218,6 @@ program
     .command('unretweet [index]')
     .alias('urt')
     .description('リツイートを取り消します')
-    .usage('<インデックス>')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
@@ -246,7 +236,6 @@ program
     .command('favrt [index]')
     .alias('frt')
     .description('いいねとリツイートをまとめてします')
-    .usage('<インデックス>')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
@@ -261,6 +250,24 @@ program
         console.log('\nExamples:');
         console.log('  $ nyaan favrt 1'.brightMagenta);
         console.log('  $ nyaan frt 10'.brightMagenta);
+    });
+
+// ツイートの画像を表示する
+program
+    .command('showimg [index]')
+    .alias('img')
+    .description('ツイートの画像を表示します')
+    .action(async (index) => {
+        const medias = tweetsData[index].entities.media;
+        if (!medias) {
+            console.error('not found')
+            return;
+        };
+        await tweet.showImage(medias);
+    }).on('--help', () => {
+        console.log('\nExamples:');
+        console.log('  $ nyaan showimg 1'.brightMagenta);
+        console.log('  $ nyaan img 10'.brightMagenta);
     });
 
 
@@ -297,5 +304,5 @@ async function interactive(){
         } catch(err) {
             util.showCMDErrorMsg(err);
         };
-    } while(array[0] != 'exit');
+    } while(array[0] != 'exit' || array[0] != 'e');
 };
