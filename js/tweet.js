@@ -1,13 +1,15 @@
 'use strct';
-
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const colors = require('colors');
 const moment = require('moment');
+/*
+const request = require('request');
+const terminalImage = require('terminal-image');
+*/
 const util = require('./util.js');
 const Twitter = require('twitter');
-
 dotenv.config({path: path.join(__dirname, "../.env")});
 
 // 認証
@@ -32,14 +34,12 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId){
 
     // テキストを追加
     status.status = tweetText;
-
     // リプライ
     if (replyToPostId){
         action = 'リプライ';
         status.in_reply_to_status_id = replyToPostId;
         status.auto_populate_reply_metadata = true;
     };
-
     // 画像があればアップロードする
     if (mediaPaths){
         const paths = mediaPaths.split(',');
@@ -74,7 +74,6 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId){
         };
         status.media_ids = mediaIds;
     };
-
     // ツイートする
     const tweet = await client.post('statuses/update', status).catch(err => {
         util.showAPIErrorMsg(err);
@@ -262,20 +261,12 @@ function showTweet(tweets){
 
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
-
         // 公式RTだった場合、RT元のツイートに置き換える
         let rtByUser;
         if (tweet.retweeted_status){
             rtByUser = `RT by ${util.optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;
             tweet = tweet.retweeted_status;
         };
-
-        // リプライだった場合の表示
-        let rpToUser = tweet.in_reply_to_screen_name;
-        if (rpToUser){
-            rpToUser = `Reply to @${rpToUser}`;
-        };
-
         // ヘッダー
         const index = ` ${i}:`.brightWhite.bgBrightBlue;
         const header = index + ' ' + createHeader(tweet.user);
@@ -284,10 +275,12 @@ function showTweet(tweets){
         // フッター
         const fotter = createFotter(tweet);
 
-        // 表示する
+        // リプライだった場合の表示
+        let rpToUser = tweet.in_reply_to_screen_name;
         if (rpToUser){
-            console.log(rpToUser.brightGreen);
+            console.log(`Reply to @${rpToUser}`.brightGreen);
         };
+        // ツイートを表示
         if (rtByUser){
             console.log(rtByUser.green);
         };
@@ -297,7 +290,6 @@ function showTweet(tweets){
         console.log(hr);
     };
 };
-
 
 /**
  * ヘッダーを作成
@@ -394,6 +386,25 @@ function createFotter(tweet){
     const fotter = ' '.repeat(width - textCount) + postTime.cyan + via.brightBlue;
     return impression + fotter;
 };
+
+/**
+ * 画像を表示（実験）
+ * @param {String} url 画像のURL
+ */
+function showImage(url){
+    return new Promise((resolve, reject) => {
+        // 画像をターミナルに表示してみる
+        request.get({url: url, encoding: null}, (err, res, body) => {
+            if (!err && res.statusCode === 200){
+                console.log(await terminalImage.buffer(body));
+                resolve();
+            } else {
+                reject(err);
+            };
+        });
+    });
+};
+
 
 module.exports = {
     tweetPost,

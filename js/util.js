@@ -2,7 +2,6 @@
 const readline = require('readline');
 const colors = require('colors');
 const emoji = require('node-emoji');
-const { exitCode } = require('process');
 
 /**
  * コンソールからの入力を受け付ける

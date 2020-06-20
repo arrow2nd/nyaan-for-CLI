@@ -243,8 +243,8 @@ program
 
 // いいね&リツイート
 program
-    .command('favorite&retweet [index]')
-    .alias('favrt')
+    .command('favrt [index]')
+    .alias('frt')
     .description('いいねとリツイートをまとめてします')
     .usage('<インデックス>')
     .action(async (index) => {
@@ -259,13 +259,13 @@ program
         };
     }).on('--help', () => {
         console.log('\nExamples:');
-        console.log('  $ nyaan favorite&retweet 1'.brightMagenta);
-        console.log('  $ nyaan favrt 10'.brightMagenta);
+        console.log('  $ nyaan favrt 1'.brightMagenta);
+        console.log('  $ nyaan frt 10'.brightMagenta);
     });
 
 
 // 終了コマンド
-program.command('exit').description('nyaanを終了します');
+program.command('exit').alias('e').description('nyaanを終了します');
 
 
 // コマンドがあれば解析、なければ対話型のやつを開始
