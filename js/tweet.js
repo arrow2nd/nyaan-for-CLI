@@ -20,16 +20,25 @@ const client = new Twitter({
 
 /**
  * ツイートする
- * @param {String} tweetText  ツイート内容
- * @param {String} mediaPaths 添付する画像のパス(複数ある場合はカンマ区切り)
+ * @param {String} tweetText     ツイート内容
+ * @param {String} mediaPaths    添付する画像のパス(複数ある場合はカンマ区切り)
+ * @param {String} replyToPostId リプライ先の投稿ID
  */
-async function tweetPost(tweetText, mediaPaths){
+async function tweetPost(tweetText, mediaPaths, replyToPostId){
     let status = {};
     let mediaIds = '';
     let uploads = '';
+    let action = 'ツイート';
 
     // テキストを追加
     status.status = tweetText;
+
+    // リプライ
+    if (replyToPostId){
+        action = 'リプライ';
+        status.in_reply_to_status_id = replyToPostId;
+        status.auto_populate_reply_metadata = true;
+    };
 
     // 画像があればアップロードする
     if (mediaPaths){
@@ -71,7 +80,7 @@ async function tweetPost(tweetText, mediaPaths){
         util.showAPIErrorMsg(err);
     });
     if (tweet){
-        console.log('ツイートしました！: '.cyan + tweet.text);
+        console.log(`${action}しました！: `.cyan + tweet.text);
         if (mediaPaths){
             console.log('添付画像: '.cyan + uploads);
         };
@@ -156,8 +165,7 @@ async function getTimeline(count){
  */
 async function getUserTimeline(userName, count){
     let param = {
-        count: count,
-        exclude_replies: true
+        count: count
     };
     // ユーザーIDがあれば追加する
     if (userName){
@@ -180,7 +188,7 @@ async function getUserTimeline(userName, count){
  * @return {Array}        取得したツイート
  */
 async function searchTweet(query, count){
-    const tweets = await client.get('search/tweets', {q: query + ' exclude:retweets', count: count}).catch(err => {
+    const tweets = await client.get('search/tweets', {q: `${query}  exclude:retweets`, count: count}).catch(err => {
         util.showAPIErrorMsg(err);
     });
     if (tweets){
@@ -254,11 +262,18 @@ function showTweet(tweets){
 
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
+
         // 公式RTだった場合、RT元のツイートに置き換える
         let rtByUser;
         if (tweet.retweeted_status){
             rtByUser = `RT by ${util.optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;
             tweet = tweet.retweeted_status;
+        };
+
+        // リプライだった場合の表示
+        let rpToUser = tweet.in_reply_to_screen_name;
+        if (rpToUser){
+            rpToUser = `Reply to @${rpToUser}`;
         };
 
         // ヘッダー
@@ -270,6 +285,9 @@ function showTweet(tweets){
         const fotter = createFotter(tweet);
 
         // 表示する
+        if (rpToUser){
+            console.log(rpToUser.brightGreen);
+        };
         if (rtByUser){
             console.log(rtByUser.green);
         };

@@ -2,6 +2,7 @@
 const readline = require('readline');
 const colors = require('colors');
 const emoji = require('node-emoji');
+const { exitCode } = require('process');
 
 /**
  * コンソールからの入力を受け付ける
@@ -158,10 +159,14 @@ function showAPIErrorMsg(error){
 function showCMDErrorMsg(error){
     const ignore = [
         'commander.unknownCommand',
-        'commander.unknownOption' 
+        'commander.unknownOption' ,
+        'commander.missingArgument'
     ];
 
     // 無視する
+    if (error.exitCode == 0){
+        return;
+    };
     for (let code of ignore){
         if (code == error.code){
             return;
@@ -170,6 +175,8 @@ function showCMDErrorMsg(error){
 
     // エラーを表示
     console.log(error);
+    // プロセスを終了
+    process.exit(1);
 };
 
 module.exports = {

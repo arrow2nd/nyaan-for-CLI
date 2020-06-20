@@ -38,12 +38,15 @@ program
     .alias('tw')
     .description('ツイートします (スペースを含む文は"で囲んでね)')
     .usage('[テキスト] [オプション]')
-    .option('-m, --media <path>', '画像を添付します。複数ある場合は,で区切ってね。')
+    .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .option('-n, --nyaan', '鳴き声を世界に発信します')
     .action(async (text, options) => {
+        // 画像のパス
         const path = options.media || '';
+        // にゃーん
         text = (options.nyaan || !text) ? 'にゃーん' : text;
-        await tweet.tweetPost(text, path).catch(err => {
+        // ツイート
+        await tweet.tweetPost(text, path, '').catch(err => {
             console.error(err);
         });
     }).on('--help', () => {
@@ -51,6 +54,35 @@ program
         console.log('  $ nyaan tweet にゃーん'.brightMagenta);
         console.log('  $ nyaan tw -n -m nyaan.png'.brightMagenta);
     });
+
+// リプライする
+program
+    .command('reply [index] [text]')
+    .alias('rp')
+    .description('リプライします (スペースを含む文は"で囲んでね)')
+    .usage('<インデックス> <テキスト> [オプション]')
+    .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
+    .option('-n, --nyaan', '鳴き声で返信します')
+    .action(async (index, text, options) => {
+        // 投稿IDを取得
+        const tweetId = tweet.getTweetId(tweetsData, index);
+        if (!tweetId){
+            return;
+        };
+        // 画像のパス
+        const path = options.media || '';
+        // にゃーん
+        text = (options.nyaan || !text) ? 'にゃーん' : text;
+        // ツイート
+        await tweet.tweetPost(text, path, tweetId).catch(err => {
+            console.error(err);
+        });
+    }).on('--help', () => {
+        console.log('\nExamples:');
+        console.log('  $ nyaan reply 0 おはよー'.brightMagenta);
+        console.log('  $ nyaan rp 10'.brightMagenta);
+    });
+
 
 // ツイートを削除する
 program
@@ -241,9 +273,7 @@ if (process.argv[2]){
     try {
         program.parse(process.argv);
     } catch(err) {
-        if (err.exitCode){
-            util.showCMDErrorMsg(err);
-        };
+        util.showCMDErrorMsg(err);
     };
 } else {
     interactive();
@@ -265,9 +295,7 @@ async function interactive(){
         try {
             await program.parseAsync(array, {from: 'user'});
         } catch(err) {
-            if (err.exitCode){
-                util.showCMDErrorMsg(err);
-            };
+            util.showCMDErrorMsg(err);
         };
     } while(array[0] != 'exit');
 };
