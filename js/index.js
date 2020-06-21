@@ -5,7 +5,6 @@ const program = require('commander');
 const colors = require('colors');
 const tweet = require('./tweet.js');
 const util = require('./util.js');
-const { option } = require("commander");
 
 // どうしてこうなった
 let tweetsData = [];
