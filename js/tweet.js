@@ -153,7 +153,7 @@ async function getTimeline(count){
 };
 
 /**
- * 特定ユーザーの投稿（TL）を取得する
+ * ユーザーのプロフィールと投稿を取得する
  * @param  {String} userName ユーザーID(空にすると自分の投稿を取得)
  * @param  {Number} count    取得件数（最大200件）
  * @return {Array}           取得したツイート
@@ -170,10 +170,32 @@ async function getUserTimeline(userName, count){
         util.showAPIErrorMsg(err);
     });
     if (tweets){
+        // 対象ユーザーと自分との関係を取得
+        const connections = await getUserLookup(tweets[0].user.id_str).catch(err => {console.error(err)});
+        // ツイートを表示
         showTweet(tweets);
-        showUserInfo(tweets[0].user);
+        // プロフィールを表示
+        showUserInfo(tweets[0].user, connections);
     };
     return tweets;
+};
+
+/**
+ * 対象のユーザーと自分との関係を取得
+ * @param  {String} userId ユーザーID
+ * @return {Object}        対象ユーザーとの関係
+ */
+async function getUserLookup(userId){
+    const lookup = await client.get('friendships/lookup', {user_id: userId}).catch(err => {
+        util.showAPIErrorMsg(err);
+        throw(err);
+    });
+    // ユーザーとの関係
+    let connections = {};
+    for (let connection of lookup[0].connections){
+        connections[connection] = true;
+    };
+    return connections;
 };
 
 /**
@@ -209,11 +231,14 @@ function getTweetId(tweets, index){
     return tweets[index].id_str;
 };
 
+
+
 /**
  * ユーザーのプロフィールを表示
- * @param {Object} user ユーザーオブジェクト
+ * @param {Object} user        ユーザーオブジェクト
+ * @param {Object} connections ユーザーとの関係情報
  */
-function showUserInfo(user){
+function showUserInfo(user, connections){
     const width = process.stdout.columns;
 
     // ユーザー名・ユーザーID
@@ -228,10 +253,20 @@ function showUserInfo(user){
     // アカウント作成日
     let createdAt = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
     createdAt =  `  created at ${createdAt}`;
-    // フォロー・フォロワー・ツイート数
+    // フォロー数とフォローされているか
+    let follow = user.friends_count;
+    follow = (connections.followed_by) ? `${follow} ${'[followed by]'.cyan}` : follow;
+    // フォロワー数とフォローしているか
     let follower = user.followers_count;
-    follower = (user.following) ? `${follower} ${'[following]'.cyan}` : follower;
-    const follow = user.friends_count;
+    follower = (connections.following) ? `${follower} ${'[following]'.cyan}` : follower;
+    // ブロック・ミュート状況
+    if (connections.blocking){
+        follower += ' [blocking]'.red;
+    };
+    if (connections.muting){
+        follower += ' [muting]'.yellow;
+    };
+    // ツイート数
     const tweetCount = `${user.statuses_count} tweets`;
 
     // 表示する
