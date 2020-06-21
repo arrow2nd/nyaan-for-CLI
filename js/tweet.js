@@ -100,7 +100,7 @@ async function deleteTweet(tweetId){
 /**
  * いいねの操作
  * @param {String}  tweetId ツイートID
- * @param {Boolean} mode    0:いいね 1:取り消す
+ * @param {Boolean} mode    いいねを取り消すかどうか
  */
 async function favorite(tweetId, mode){
     const type = ['create', 'destroy'];
@@ -118,7 +118,7 @@ async function favorite(tweetId, mode){
 /**
  * リツイートの操作
  * @param {String}  tweetId ツイートID
- * @param {Boolean} mode    0:リツイート 1:取り消す
+ * @param {Boolean} mode    リツイートを取り消すかどうか
  */
 async function retweet(tweetId, mode){
     const type = ['retweet', 'unretweet'];
@@ -132,6 +132,61 @@ async function retweet(tweetId, mode){
         console.log(msg.cyan + text);
     };
 };
+
+/**
+ * フォローの操作
+ * @param {String}  userId ユーザーのスクリーンネーム
+ * @param {Boolean} mode   フォローを解除するかどうか
+ */
+async function follow(userId, mode){
+    const type = ['create', 'destroy'];
+    const user = await client.post(`friendships/${type[mode]}`, {screen_name: userId}).catch(err => {
+        util.showAPIErrorMsg(err);
+    });
+    if (user){
+        const msg = (mode) ? 'フォローを解除しました: ' : 'フォローしました！: ';
+        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
+        const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
+        console.log(msg.cyan + text);
+    };
+};
+
+/**
+ * ブロックの操作
+ * @param {String}  userId ユーザーのスクリーンネーム
+ * @param {Boolean} mode   ブロックを解除するかどうか
+ */
+async function block(userId, mode){
+    const type = ['create', 'destroy'];
+    const user = await client.post(`blocks/${type[mode]}`, {screen_name: userId}).catch(err => {
+        util.showAPIErrorMsg(err);
+    });
+    if (user){
+        const msg = (mode) ? 'ブロックを解除しました: ' : 'ブロックしました: ';
+        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
+        const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
+        console.log(msg.cyan + text);
+    };
+};
+
+/**
+ * ミュートの操作
+ * @param {String}  userId ユーザーのスクリーンネーム
+ * @param {Boolean} mode   ミュートを解除するかどうか
+ */
+async function mute(userId, mode){
+    const type = ['create', 'destroy'];
+    const user = await client.post(`mutes/${type[mode]}`, {screen_name: userId}).catch(err => {
+        util.showAPIErrorMsg(err);
+    });
+    if (user){
+        const msg = (mode) ? 'ミュートを解除しました: ' : 'ミュートしました: ';
+        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
+        const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
+        console.log(msg.cyan + text);
+    };
+};
+
 
 /**
  * タイムラインを取得する
@@ -154,18 +209,17 @@ async function getTimeline(count){
 
 /**
  * ユーザーのプロフィールと投稿を取得する
- * @param  {String} userName ユーザーID(空にすると自分の投稿を取得)
- * @param  {Number} count    取得件数（最大200件）
- * @return {Array}           取得したツイート
+ * @param  {String} userId ユーザーID(空にすると自分の投稿を取得)
+ * @param  {Number} count  取得件数（最大200件）
+ * @return {Array}         取得したツイート
  */
-async function getUserTimeline(userName, count){
+async function getUserTimeline(userId, count){
     let param = {
         count: count
     };
     // ユーザーIDがあれば追加する
-    if (userName){
-        userName = userName.replace(/@|＠/, '');
-        param.screen_name = '@' + userName;
+    if (userId){
+        param.screen_name = userId.replace(/@|＠/, '');
     };
     const tweets = await client.get('statuses/user_timeline', param).catch(err => {
         util.showAPIErrorMsg(err);
@@ -438,6 +492,9 @@ module.exports = {
     deleteTweet,
     favorite,
     retweet,
+    follow,
+    block,
+    mute,
     getTimeline,
     getUserTimeline,
     getTweetId,

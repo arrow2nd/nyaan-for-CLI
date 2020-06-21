@@ -139,6 +139,7 @@ program
     }).on('--help', () => {
         console.log('\nTips:');
         console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
+        console.log('  ・指定したツイートがRTの場合、RT元のユーザーが指定されます'.brightMagenta);
         console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
@@ -226,6 +227,85 @@ program
             });
         };
     });
+
+/**
+ * フォローする/取り消す
+ */
+program
+    .command('follow [userId]')
+    .alias('fw')
+    .description('ユーザーをフォローします')
+    .option('-r, --remove', 'フォローを解除します')
+    .action(async (userId, options) => {
+        const mode = (options.remove) ? 1 : 0;
+        // userIdが指定されていない場合、インデックス0を指定
+        userId = (userId) ? userId : 0;
+        // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
+        if (!isNaN(userId)){
+            userId = tweetsData[Number(userId)].user.screen_name;
+        };
+        await tweet.follow(userId, mode).catch(err => {
+            console.error(err);
+        });
+    }).on('--help', () => {
+        console.log('\nTips:');
+        console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
+        console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます'.brightMagenta);
+        console.log('  ・フォロー解除は -r オプションです'.brightMagenta);
+    });
+
+/**
+ * ブロックする/解除する
+ */
+program
+    .command('block [userId]')
+    .alias('bk')
+    .description('ユーザーをブロックします')
+    .option('-r, --remove', 'ブロックを解除します')
+    .action(async (userId, options) => {
+        const mode = (options.remove) ? 1 : 0;
+        // userIdが指定されていない場合、インデックス0を指定
+        userId = (userId) ? userId : 0;
+        // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
+        if (!isNaN(userId)){
+            userId = tweetsData[Number(userId)].user.screen_name;
+        };
+        await tweet.block(userId, mode).catch(err => {
+            console.error(err);
+        });
+    }).on('--help', () => {
+        console.log('\nTips:');
+        console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
+        console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます'.brightMagenta);
+        console.log('  ・ブロック解除は -r オプションです'.brightMagenta);
+    });
+
+/**
+ * ミュートする/解除する
+ */
+program
+    .command('mute [userId]')
+    .alias('mt')
+    .description('ユーザーをミュートします')
+    .option('-r, --remove', 'ミュートを解除します')
+    .action(async (userId, options) => {
+        const mode = (options.remove) ? 1 : 0;
+        // userIdが指定されていない場合、インデックス0を指定
+        userId = (userId) ? userId : 0;
+        // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
+        if (!isNaN(userId)){
+            userId = tweetsData[Number(userId)].user.screen_name;
+        };
+        await tweet.mute(userId, mode).catch(err => {
+            console.error(err);
+        });
+    }).on('--help', () => {
+        console.log('\nTips:');
+        console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
+        console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます'.brightMagenta);
+        console.log('  ・ミュート解除は -r オプションです'.brightMagenta);
+    });
+
 
 /**
  * nyaanを終了する
