@@ -176,7 +176,7 @@ async function block(userId, mode){
  */
 async function mute(userId, mode){
     const type = ['create', 'destroy'];
-    const user = await client.post(`mutes/${type[mode]}`, {screen_name: userId}).catch(err => {
+    const user = await client.post(`mutes/users/${type[mode]}`, {screen_name: userId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
     if (user){
@@ -241,14 +241,15 @@ async function getUserTimeline(userId, count){
  * @return {Object}        対象ユーザーとの関係
  */
 async function getUserLookup(userId){
+    let connections = {};
     const lookup = await client.get('friendships/lookup', {user_id: userId}).catch(err => {
         util.showAPIErrorMsg(err);
-        throw(err);
     });
     // ユーザーとの関係
-    let connections = {};
-    for (let connection of lookup[0].connections){
-        connections[connection] = true;
+    if (lookup){
+        for (let connection of lookup[0].connections){
+            connections[connection] = true;
+        };
     };
     return connections;
 };
@@ -276,10 +277,7 @@ async function searchTweet(query, count){
  * @return {String}        ツイートID
  */
 function getTweetId(tweets, index){
-    if (!index){
-        console.error('Error: インデックスが指定されていません'.brightRed);
-        return;
-    } else if (index > tweets.length - 1){
+    if (index > tweets.length - 1){
         console.error('Error: ツイートが存在しません'.brightRed);
         return '';
     };
@@ -288,13 +286,18 @@ function getTweetId(tweets, index){
 
 /**
  * ツイートのインデックスからユーザーのスクリーンネームを取得する
- * @param  {Object} tweets ツイートオブジェクト
- * @param  {Number} index  ツイートのインデックス
- * @return {String}        スクリーンネーム
+ * @param  {Object}  tweets ツイートオブジェクト
+ * @param  {Number}  index  ツイートのインデックス
+ * @param  {Boolean} mode   RTだった場合、RT元のユーザーを取得する
+ * @return {String}         スクリーンネーム
  */
-function getUserId(tweets, index){
+function getUserId(tweets, index, mode){
+    if (index > tweets.length - 1){
+        console.error('Error: ツイートが存在しません'.brightRed);
+        return '';
+    };
     // RTの場合はRT元のスクリーンネーム
-    if (tweets[index].retweeted_status){
+    if (mode ==1 && tweets[index].retweeted_status){
         return tweets[index].retweeted_status.user.screen_name;
     } else {
         return tweets[index].user.screen_name;

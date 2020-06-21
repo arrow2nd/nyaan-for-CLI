@@ -5,6 +5,7 @@ const program = require('commander');
 const colors = require('colors');
 const tweet = require('./tweet.js');
 const util = require('./util.js');
+const { option } = require("commander");
 
 // どうしてこうなった
 let tweetsData = [];
@@ -48,6 +49,8 @@ program
         await tweet.tweetPost(text, path, '').catch(err => {
             console.error(err);
         });
+        delete options.media;
+        delete options.nyaan;
     }).on('--help', () => {
         console.log('\nTips:');
         console.log('  ・テキストを省略すると、「にゃーん」に変換されます'.brightMagenta);
@@ -57,7 +60,7 @@ program
  * リプライする
  */
 program
-    .command('reply [index] [text]')
+    .command('reply <index> [text]')
     .alias('rp')
     .description('リプライします (スペースを含む文は"で囲んでね)')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
@@ -76,6 +79,8 @@ program
         await tweet.tweetPost(text, path, tweetId).catch(err => {
             console.error(err);
         });
+        delete options.media;
+        delete options.nyaan;
     }).on('--help', () => {
         console.log('\nTips:');
         console.log('  ・テキストを省略すると、「にゃーん」に変換されます'.brightMagenta);
@@ -85,7 +90,7 @@ program
  * ツイートを削除する
  */
 program
-    .command('deltweet [index]')
+    .command('deltweet <index>')
     .alias('dtw')
     .description('ツイートを削除します')
     .action(async (index) => {
@@ -96,9 +101,6 @@ program
         await tweet.deleteTweet(tweetId).catch(err => {
             console.error(err);
         });
-    }).on('--help', () => {
-        console.log('\nTips:');
-        console.log('  ・インデックスの省略はできません'.brightMagenta);
     });
 
 /**
@@ -129,7 +131,7 @@ program
     .action(async (userId, counts) => {
         // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
         if (!isNaN(userId)){
-            userId = tweet.getUserId(tweetsData, Number(userId));
+            userId = tweet.getUserId(tweetsData, Number(userId), 1);
         };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const timeline = await tweet.getUserTimeline(userId, counts).catch(err => {
@@ -147,14 +149,10 @@ program
  * キーワードからツイートを検索する
  */
 program
-    .command('search [keyword] [counts]')
+    .command('search <keyword> [counts]')
     .alias('sch')
     .description('キーワードからツイートを検索します')
     .action(async (keyword, counts) => {
-        if (!keyword){
-            console.error('Error: キーワードがありません'.brightRed);
-            return;
-        };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const tweets = await tweet.searchTweet(keyword, counts).catch(err => {
             console.error(err);
@@ -169,7 +167,7 @@ program
  * いいねする/取り消す
  */
 program
-    .command('favorite [index]')
+    .command('favorite <index>')
     .alias('fav')
     .description('いいね！します')
     .option('-r, --remove', 'いいねを取り消します')
@@ -177,18 +175,20 @@ program
         // 0: 取り消し 1: いいね
         const mode = (options.remove) ? 1 : 0;
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (tweetId){
-            await tweet.favorite(tweetId, mode).catch(err => {
-                console.error(err);
-            });
+        if (!tweetId){
+            return;
         };
+        await tweet.favorite(tweetId, mode).catch(err => {
+            console.error(err);
+        });
+        delete options.remove;
     });
 
 /**
  * リツイートする/取り消す
  */
 program
-    .command('retweet [index]')
+    .command('retweet <index>')
     .alias('rt')
     .description('リツイートします')
     .option('-r, --remove', 'リツイートを取り消します')
@@ -196,30 +196,33 @@ program
         // 0: 取り消す 1: リツイート
         const mode = (options.remove) ? 1 : 0;
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (tweetId){
-            await tweet.retweet(tweetId, mode).catch(err => {
-                console.error(err);
-            });
+        if (!tweetId) {
+            return;
         };
+        await tweet.retweet(tweetId, mode).catch(err => {
+            console.error(err);
+        });
+        delete options.remove;
     });
 
 /**
  * いいねとリツイートを同時にする
  */
 program
-    .command('favrt [index]')
+    .command('favrt <index>')
     .alias('frt')
     .description('いいねとリツイートをまとめてします')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (tweetId){
-            await tweet.favorite(tweetId, 0).catch(err => {
-                console.error(err);
-            });
-            await tweet.retweet(tweetId, 0).catch(err => {
-                console.error(err);
-            });
+        if (!tweetId){
+            return;
         };
+        await tweet.favorite(tweetId, 0).catch(err => {
+            console.error(err);
+        });
+        await tweet.retweet(tweetId, 0).catch(err => {
+            console.error(err);
+        });
     });
 
 /**
@@ -233,14 +236,18 @@ program
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
         // userIdが指定されていない場合、インデックス0を指定
-        userId = (userId) ? userId : 0;
+        userId = (userId) ? userId : '0';
         // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
         if (!isNaN(userId)){
-            userId = tweetsData[Number(userId)].user.screen_name;
+            userId = tweet.getUserId(tweetsData, Number(userId), 0);
+        };
+        if (!userId){
+            return;
         };
         await tweet.follow(userId, mode).catch(err => {
             console.error(err);
         });
+        delete options.remove;
     }).on('--help', () => {
         console.log('\nTips:');
         console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
@@ -258,14 +265,18 @@ program
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
         // userIdが指定されていない場合、インデックス0を指定
-        userId = (userId) ? userId : 0;
+        userId = (userId) ? userId : '0';
         // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
         if (!isNaN(userId)){
-            userId = tweetsData[Number(userId)].user.screen_name;
+            userId = tweet.getUserId(tweetsData, Number(userId), 0);
+        };
+        if (!userId){
+            return;
         };
         await tweet.block(userId, mode).catch(err => {
             console.error(err);
         });
+        delete options.remove;
     }).on('--help', () => {
         console.log('\nTips:');
         console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
@@ -283,14 +294,18 @@ program
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
         // userIdが指定されていない場合、インデックス0を指定
-        userId = (userId) ? userId : 0;
+        userId = (userId) ? userId : '0';
         // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
         if (!isNaN(userId)){
-            userId = tweetsData[Number(userId)].user.screen_name;
+            userId = tweet.getUserId(tweetsData, Number(userId), 0);
+        };
+        if (!userId){
+            return;
         };
         await tweet.mute(userId, mode).catch(err => {
             console.error(err);
         });
+        options.remove = false;
     }).on('--help', () => {
         console.log('\nTips:');
         console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
