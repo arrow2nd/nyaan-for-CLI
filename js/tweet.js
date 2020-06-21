@@ -6,9 +6,9 @@ const colors = require('colors');
 const moment = require('moment');
 const util = require('./util.js');
 const Twitter = require('twitter');
-dotenv.config({path: path.join(__dirname, "../.env")});
 
 // 認証
+dotenv.config({path: path.join(__dirname, "../.env")});
 const client = new Twitter({
     consumer_key: `${process.env.CONSUMER_KEY}`,
     consumer_secret: `${process.env.CONSUMER_SECRET}`,
@@ -164,6 +164,7 @@ async function getUserTimeline(userName, count){
     };
     // ユーザーIDがあれば追加する
     if (userName){
+        userName = userName.replace(/@|＠/, '');
         param.screen_name = '@' + userName;
     };
     const tweets = await client.get('statuses/user_timeline', param).catch(err => {
@@ -231,6 +232,20 @@ function getTweetId(tweets, index){
     return tweets[index].id_str;
 };
 
+/**
+ * ツイートのインデックスからユーザーのスクリーンネームを取得する
+ * @param  {Object} tweets ツイートオブジェクト
+ * @param  {Number} index  ツイートのインデックス
+ * @return {String}        スクリーンネーム
+ */
+function getUserId(tweets, index){
+    // RTの場合はRT元のスクリーンネーム
+    if (tweets[index].retweeted_status){
+        return tweets[index].retweeted_status.user.screen_name;
+    } else {
+        return tweets[index].user.screen_name;
+    };
+};
 
 
 /**
@@ -283,7 +298,7 @@ function showUserInfo(user, connections){
 
 /**
  * ツイートを表示
- * @param {Array}   tweets    ツイートオブジェクト
+ * @param {Array} tweets ツイートオブジェクト
  */
 function showTweet(tweets){
     const width = process.stdout.columns;
@@ -426,5 +441,6 @@ module.exports = {
     getTimeline,
     getUserTimeline,
     getTweetId,
+    getUserId,
     searchTweet
 };

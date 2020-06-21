@@ -5,7 +5,6 @@ const program = require('commander');
 const colors = require('colors');
 const tweet = require('./tweet.js');
 const util = require('./util.js');
-const Twitter = require("twitter");
 
 // どうしてこうなった
 let tweetsData = [];
@@ -19,20 +18,21 @@ program.version(packageJson.version, '-v, --version');
 // 名前と大体の使い方
 program.name('nyaan').usage('command [オプション]');
 
-// コンソールをクリアする
+
+/**
+ * コンソールをクリアする
+ */
 program
     .command('clear')
     .alias('cls')
     .description('コンソールをクリアします')
     .action(() => {
         console.clear();
-    }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan claer'.brightMagenta);
-        console.log('  $ nyaan cls'.brightMagenta);
     });
 
-// ツイートする
+/**
+ * ツイートする 
+ */
 program
     .command('tweet [text]')
     .alias('tw')
@@ -49,12 +49,13 @@ program
             console.error(err);
         });
     }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan tweet にゃーん'.brightMagenta);
-        console.log('  $ nyaan tw -n -m nyaan.png'.brightMagenta);
+        console.log('\nTips:');
+        console.log('  ・テキストを省略すると、「にゃーん」に変換されます'.brightMagenta);
     });
 
-// リプライする
+/**
+ * リプライする
+ */
 program
     .command('reply [index] [text]')
     .alias('rp')
@@ -76,32 +77,33 @@ program
             console.error(err);
         });
     }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan reply 0 おはよー'.brightMagenta);
-        console.log('  $ nyaan rp 10'.brightMagenta);
+        console.log('\nTips:');
+        console.log('  ・テキストを省略すると、「にゃーん」に変換されます'.brightMagenta);
     });
 
-
-// ツイートを削除する
+/**
+ * ツイートを削除する
+ */
 program
     .command('deltweet [index]')
     .alias('dtw')
     .description('ツイートを削除します')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (!tweetId){
+        if (!tweetId) {
             return;
         };
         await tweet.deleteTweet(tweetId).catch(err => {
             console.error(err);
         });
     }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan deltweet 1'.brightMagenta);
-        console.log('  $ nyaan dtw 10'.brightMagenta);
+        console.log('\nTips:');
+        console.log('  ・インデックスの省略はできません'.brightMagenta);
     });
 
-// タイムラインを見る
+/**
+ * タイムラインを見る
+ */
 program
     .command('timeline [counts]')
     .alias('tl')
@@ -113,19 +115,21 @@ program
         });
         tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan timeline'.brightMagenta);
-        console.log('  $ nyaan tl 50'.brightMagenta);
+        console.log('\nTips:');
+        console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
-// ユーザーのタイムラインを見る
+/**
+ * ユーザーのタイムラインを見る
+ */
 program
     .command('usertimeline [userId] [counts]')
     .alias('utl')
-    .description('指定したユーザーのタイムラインを表示します')
+    .description('ユーザーのタイムラインを表示します')
     .action(async (userId, counts) => {
-        if (userId){
-            userId = userId.replace(/@|＠/, '');
+        // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
+        if (!isNaN(userId)){
+            userId = tweet.getUserId(tweetsData, Number(userId));
         };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const timeline = await tweet.getUserTimeline(userId, counts).catch(err => {
@@ -133,12 +137,14 @@ program
         });
         tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan userTimeline @Twitter'.brightMagenta);
-        console.log('  $ nyaan utl Twitter 50'.brightMagenta);
+        console.log('\nTips:');
+        console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
+        console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
-// キーワードでツイートを探す
+/**
+ * キーワードからツイートを検索する
+ */
 program
     .command('search [keyword] [counts]')
     .alias('sch')
@@ -154,84 +160,57 @@ program
         });
         tweetsData = (tweets) ? tweets.statuses : tweetsData;
     }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan search 三毛猫'.brightMagenta);
-        console.log('  $ nyaan sch cat 50'.brightMagenta);
+        console.log('\nTips:');
+        console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
-// ふぁぼる
+/**
+ * いいねする/取り消す
+ */
 program
     .command('favorite [index]')
     .alias('fav')
     .description('いいね！します')
-    .action(async (index) => {
+    .option('-r, --remove', 'いいねを取り消します')
+    .action(async (index, options) => {
+        // 0: 取り消し 1: いいね
+        const mode = (options.remove) ? 1 : 0;
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
-            await tweet.favorite(tweetId, 0).catch(err => {
+            await tweet.favorite(tweetId, mode).catch(err => {
                 console.error(err);
             });
         };
     }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan favorite 1'.brightMagenta);
-        console.log('  $ nyaan fav 10'.brightMagenta);
+        console.log('\nTips:');
+        console.log('  ・取り消しは -r オプションです'.brightMagenta);
     });
 
-// ふぁぼを取り消す
-program
-    .command('unfavorite [index]')
-    .alias('ufav')
-    .description('いいね！を取り消します')
-    .action(async (index) => {
-        const tweetId = tweet.getTweetId(tweetsData, index);
-        if (tweetId){
-            await tweet.favorite(tweetId, 1).catch(err => {
-                console.error(err);
-            });
-        };
-    }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan unfavorite 1'.brightMagenta);
-        console.log('  $ nyaan ufav 10'.brightMagenta);
-    });
-
-// リツイートする
+/**
+ * リツイートする/取り消す
+ */
 program
     .command('retweet [index]')
     .alias('rt')
     .description('リツイートします')
-    .action(async (index) => {
+    .option('-r, --remove', 'リツイートを取り消します')
+    .action(async (index, options) => {
+        // 0: 取り消す 1: リツイート
+        const mode = (options.remove) ? 1 : 0;
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
-            await tweet.retweet(tweetId, 0).catch(err => {
+            await tweet.retweet(tweetId, mode).catch(err => {
                 console.error(err);
             });
         };
     }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan retweet 1'.brightMagenta);
-        console.log('  $ nyaan rt 10'.brightMagenta);
+        console.log('\nTips:');
+        console.log('  ・取り消しは -r オプションです'.brightMagenta);
     });
 
-// リツイートを取り消す
-program
-    .command('unretweet [index]')
-    .alias('urt')
-    .description('リツイートを取り消します')
-    .action(async (index) => {
-        const tweetId = tweet.getTweetId(tweetsData, index);
-        if (tweetId){
-            await tweet.retweet(tweetId, 1).catch(err => {
-                console.error(err);
-            });
-        };
-    }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan unretweet 1'.brightMagenta);
-        console.log('  $ nyaan urt 10'.brightMagenta);
-    });
-
-// いいね&リツイート
+/**
+ * いいねとリツイートを同時にする
+ */
 program
     .command('favrt [index]')
     .alias('frt')
@@ -246,13 +225,11 @@ program
                 console.error(err);
             });
         };
-    }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan favrt 1'.brightMagenta);
-        console.log('  $ nyaan frt 10'.brightMagenta);
     });
 
-// 終了コマンド
+/**
+ * nyaanを終了する
+ */
 program
     .command('exit')
     .alias('e')
@@ -275,7 +252,7 @@ if (process.argv[2]){
 
 
 /**
- * 無理やり対話型にしてるやつ
+ * 対話型モード（無理矢理）
  */
 async function interactive(){
     // とりあえずタイムライン表示
