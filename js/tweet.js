@@ -4,10 +4,6 @@ const path = require('path');
 const dotenv = require('dotenv');
 const colors = require('colors');
 const moment = require('moment');
-
-const request = require('request');
-const terminalImage = require('terminal-image');
-
 const util = require('./util.js');
 const Twitter = require('twitter');
 dotenv.config({path: path.join(__dirname, "../.env")});
@@ -387,26 +383,6 @@ function createFotter(tweet){
     return impression + fotter;
 };
 
-/**
- * 画像を表示（実験）
- * @param {String} url 画像のURL
- */
-function showImage(medias){
-    return new Promise((resolve, reject) => {
-        // 画像をターミナルに表示してみる
-        for (let media of medias){
-            request.get({url: media.media_url_https, encoding: null}, async (err, res, body) => {
-                if (!err && res.statusCode === 200){
-                    console.log(await terminalImage.buffer(body));
-                    resolve();
-                } else {
-                    reject(err);
-                };
-            });
-        };
-    });
-};
-
 module.exports = {
     tweetPost,
     deleteTweet,
@@ -415,6 +391,5 @@ module.exports = {
     getTimeline,
     getUserTimeline,
     getTweetId,
-    searchTweet,
-    showImage
+    searchTweet
 };

@@ -252,27 +252,14 @@ program
         console.log('  $ nyaan frt 10'.brightMagenta);
     });
 
-// ツイートの画像を表示する
-program
-    .command('showimg [index]')
-    .alias('img')
-    .description('ツイートの画像を表示します')
-    .action(async (index) => {
-        const medias = tweetsData[index].entities.media;
-        if (!medias) {
-            console.error('not found')
-            return;
-        };
-        await tweet.showImage(medias);
-    }).on('--help', () => {
-        console.log('\nExamples:');
-        console.log('  $ nyaan showimg 1'.brightMagenta);
-        console.log('  $ nyaan img 10'.brightMagenta);
-    });
-
-
 // 終了コマンド
-program.command('exit').alias('e').description('nyaanを終了します');
+program
+    .command('exit')
+    .alias('e')
+    .description('nyaanを終了します')
+    .action(() => {
+        process.exit(0);
+    });
 
 
 // コマンドがあれば解析、なければ対話型のやつを開始
@@ -295,7 +282,7 @@ async function interactive(){
     tweetsData = await tweet.getTimeline(20).catch(err => {console.error(err)});
     // ループ
     let array = '';
-    do {
+    while (1) {
         // 入力待ち
         array = await util.readlineSync().catch(err => {console.error(err)});
         // コマンド実行
@@ -304,5 +291,5 @@ async function interactive(){
         } catch(err) {
             util.showCMDErrorMsg(err);
         };
-    } while(array[0] != 'exit' || array[0] != 'e');
+    };
 };
