@@ -182,9 +182,6 @@ program
                 console.error(err);
             });
         };
-    }).on('--help', () => {
-        console.log('\nTips:');
-        console.log('  ・取り消しは -r オプションです'.brightMagenta);
     });
 
 /**
@@ -204,9 +201,6 @@ program
                 console.error(err);
             });
         };
-    }).on('--help', () => {
-        console.log('\nTips:');
-        console.log('  ・取り消しは -r オプションです'.brightMagenta);
     });
 
 /**
@@ -251,7 +245,6 @@ program
         console.log('\nTips:');
         console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます'.brightMagenta);
-        console.log('  ・フォロー解除は -r オプションです'.brightMagenta);
     });
 
 /**
@@ -277,7 +270,6 @@ program
         console.log('\nTips:');
         console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます'.brightMagenta);
-        console.log('  ・ブロック解除は -r オプションです'.brightMagenta);
     });
 
 /**
@@ -303,7 +295,6 @@ program
         console.log('\nTips:');
         console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます'.brightMagenta);
-        console.log('  ・ミュート解除は -r オプションです'.brightMagenta);
     });
 
 
