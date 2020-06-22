@@ -19,13 +19,11 @@ const client = new Twitter({
 /**
  * ツイートする
  * @param {String} tweetText     ツイート内容
- * @param {String} mediaPaths    添付する画像のパス(複数ある場合はカンマ区切り)
+ * @param {String} mediaPaths    添付する画像のパス(複数ある場合は,区切り)
  * @param {String} replyToPostId リプライ先の投稿ID
  */
 async function tweetPost(tweetText, mediaPaths, replyToPostId){
     let status = {};
-    let mediaIds = '';
-    let uploads = '';
     let action = 'ツイート';
 
     // テキストを追加
@@ -38,37 +36,9 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId){
     };
     // 画像があればアップロードする
     if (mediaPaths){
-        const paths = mediaPaths.split(',');
-        const pathLength = (paths.length > 4) ? 4 : paths.length;
-        for (let i = 0; i < pathLength; i++){
-            const filePath = paths[i].trim();
-            // 画像があるか確認
-            try {
-                fs.statSync(filePath);
-            } catch(err) {
-                console.error(`ファイルが見つかりません(${filePath})`.brightRed);
-                continue;
-            };
-            // 拡張子を確認
-            const ext = path.extname(filePath).toLowerCase();
-            if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif'){
-                const file = fs.readFileSync(filePath);
-                // アップロード
-                let media;
-                try {
-                    media = await client.post('media/upload', {media: file});
-                } catch(err) {
-                    console.error(`アップロードに失敗しました(${filePath})`.brightRed);
-                    continue;
-                };
-                mediaIds += media.media_id_string + ',';
-                uploads += filePath + ' ';
-            } else {
-                console.error(`未対応の拡張子です(${ext})`.brightRed);
-                continue;
-            };
-        };
-        status.media_ids = mediaIds;
+        status.media_ids = await upload(mediaPaths).catch(err => {
+            util.showAPIErrorMsg(err);
+        });
     };
     // ツイートする
     const tweet = await client.post('statuses/update', status).catch(err => {
@@ -76,10 +46,47 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId){
     });
     if (tweet){
         console.log(`${action}しました！: `.cyan + tweet.text);
-        if (mediaPaths){
-            console.log('添付画像: '.cyan + uploads);
+    };
+};
+
+/**
+ * 画像をアップロードする
+ * @param  {String} mediaPaths ,で区切った画像のパス
+ * @return {String}            メディアID
+ */
+async function upload(mediaPaths){
+    const paths = mediaPaths.split(',');
+    const pathLength = (paths.length > 4) ? 4 : paths.length;
+    let mediaIds = '';
+    for (let i = 0; i < pathLength; i++){
+        const filePath = paths[i].trim();
+        // 画像があるか確認
+        try {
+            fs.statSync(filePath);
+        } catch(err) {
+            console.error(`ファイルが見つかりません(${filePath})`.brightRed);
+            continue;
+        };
+        // 拡張子を確認
+        const ext = path.extname(filePath).toLowerCase();
+        if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif'){
+            const file = fs.readFileSync(filePath);
+            // アップロード
+            let media;
+            try {
+                media = await client.post('media/upload', {media: file});
+            } catch(err) {
+                console.error(`アップロードに失敗しました(${filePath})`.brightRed);
+                continue;
+            };
+            mediaIds += media.media_id_string + ',';
+            console.log('アップロードしました！： '.cyan + filePath);
+        } else {
+            console.error(`未対応の拡張子です(${ext})`.brightRed);
+            continue;
         };
     };
+    return mediaIds;
 };
 
 /**

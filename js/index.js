@@ -67,17 +67,16 @@ program
     .action(async (index, text, options) => {
         // 投稿IDを取得
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (!tweetId){
-            return;
+        if (tweetId){
+            // 画像のパス
+            const path = options.media || '';
+            // にゃーん
+            text = (options.nyaan || !text) ? 'にゃーん' : text;
+            // ツイート
+            await tweet.tweetPost(text, path, tweetId).catch(err => {
+                console.error(err);
+            });
         };
-        // 画像のパス
-        const path = options.media || '';
-        // にゃーん
-        text = (options.nyaan || !text) ? 'にゃーん' : text;
-        // ツイート
-        await tweet.tweetPost(text, path, tweetId).catch(err => {
-            console.error(err);
-        });
         delete options.media;
         delete options.nyaan;
     }).on('--help', () => {
@@ -94,12 +93,11 @@ program
     .description('ツイートを削除します')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (!tweetId) {
-            return;
+        if (tweetId) {
+            await tweet.deleteTweet(tweetId).catch(err => {
+                console.error(err);
+            });
         };
-        await tweet.deleteTweet(tweetId).catch(err => {
-            console.error(err);
-        });
     });
 
 /**
@@ -174,12 +172,11 @@ program
         // 0: 取り消し 1: いいね
         const mode = (options.remove) ? 1 : 0;
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (!tweetId){
-            return;
+        if (tweetId){
+            await tweet.favorite(tweetId, mode).catch(err => {
+                console.error(err);
+            });
         };
-        await tweet.favorite(tweetId, mode).catch(err => {
-            console.error(err);
-        });
         delete options.remove;
     });
 
@@ -195,12 +192,11 @@ program
         // 0: 取り消す 1: リツイート
         const mode = (options.remove) ? 1 : 0;
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (!tweetId) {
-            return;
+        if (tweetId) {
+            await tweet.retweet(tweetId, mode).catch(err => {
+                console.error(err);
+            });
         };
-        await tweet.retweet(tweetId, mode).catch(err => {
-            console.error(err);
-        });
         delete options.remove;
     });
 
@@ -213,15 +209,14 @@ program
     .description('いいねとリツイートをまとめてします')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (!tweetId){
-            return;
+        if (tweetId){
+            await tweet.favorite(tweetId, 0).catch(err => {
+                console.error(err);
+            });
+            await tweet.retweet(tweetId, 0).catch(err => {
+                console.error(err);
+            });
         };
-        await tweet.favorite(tweetId, 0).catch(err => {
-            console.error(err);
-        });
-        await tweet.retweet(tweetId, 0).catch(err => {
-            console.error(err);
-        });
     });
 
 /**
@@ -240,12 +235,11 @@ program
         if (!isNaN(userId)){
             userId = tweet.getUserId(tweetsData, Number(userId), 0);
         };
-        if (!userId){
-            return;
+        if (userId){
+            await tweet.follow(userId, mode).catch(err => {
+                console.error(err);
+            });
         };
-        await tweet.follow(userId, mode).catch(err => {
-            console.error(err);
-        });
         delete options.remove;
     }).on('--help', () => {
         console.log('\nTips:');
@@ -269,12 +263,11 @@ program
         if (!isNaN(userId)){
             userId = tweet.getUserId(tweetsData, Number(userId), 0);
         };
-        if (!userId){
-            return;
+        if (userId){
+            await tweet.block(userId, mode).catch(err => {
+                console.error(err);
+            });
         };
-        await tweet.block(userId, mode).catch(err => {
-            console.error(err);
-        });
         delete options.remove;
     }).on('--help', () => {
         console.log('\nTips:');
@@ -298,12 +291,11 @@ program
         if (!isNaN(userId)){
             userId = tweet.getUserId(tweetsData, Number(userId), 0);
         };
-        if (!userId){
-            return;
+        if (userId){
+            await tweet.mute(userId, mode).catch(err => {
+                console.error(err);
+            });
         };
-        await tweet.mute(userId, mode).catch(err => {
-            console.error(err);
-        });
         options.remove = false;
     }).on('--help', () => {
         console.log('\nTips:');
