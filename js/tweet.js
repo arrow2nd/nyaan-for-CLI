@@ -411,6 +411,7 @@ function createHeader(user){
     // ユーザー情報
     const userName = util.optimizeText(user.name);
     const userId = `  @${user.screen_name}`;
+    let badge = '';
     // 公式アカウント
     if (user.verified){
         badge += ' [verified]'.cyan;
