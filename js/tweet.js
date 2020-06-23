@@ -366,9 +366,11 @@ function showUserInfo(user, connections){
  */
 function showTweet(tweets){
     const width = process.stdout.columns;
+    // 水平線
     const hr = '-'.repeat(width);
     console.log(hr);
-
+    
+    // ツイートの解析
     for (let i = tweets.length - 1;i >= 0;i--){
         let tweet = tweets[i];
         // 公式RTだった場合、RT元のツイートに置き換える
@@ -377,22 +379,20 @@ function showTweet(tweets){
             rtByUser = `RT by ${util.optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;
             tweet = tweet.retweeted_status;
         };
-        // ヘッダー
+        // 表示内容を作成
         const index = ` ${i}:`.brightWhite.bgBrightBlue;
         const header = index + ' ' + createHeader(tweet.user);
-        // 投稿内容
         const postText = createTweet(tweet);
-        // フッター
         const fotter = createFotter(tweet);
 
+        // RTの表示
+        if (rtByUser){
+            console.log(rtByUser.green);
+        };
         // リプライの表示
         let rpToUser = tweet.in_reply_to_screen_name;
         if (rpToUser){
             console.log(`Reply to @${rpToUser}`.brightGreen);
-        };
-        // RTの表示
-        if (rtByUser){
-            console.log(rtByUser.green);
         };
         // ツイートを表示
         console.log(header + '\n');
