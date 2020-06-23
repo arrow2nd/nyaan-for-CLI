@@ -200,7 +200,7 @@ program
 program
     .command('favrt <index>')
     .alias('frt')
-    .description('いいねとリツイートをまとめてします')
+    .description('いいねとリツイートします')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
