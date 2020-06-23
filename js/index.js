@@ -40,11 +40,8 @@ program
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .option('-n, --nyaan', '鳴き声を世界に発信します')
     .action(async (text, options) => {
-        // 画像のパス
         const path = options.media || '';
-        // にゃーん
         text = (options.nyaan || !text) ? 'にゃーん' : text;
-        // ツイート
         await tweet.tweetPost(text, path, '').catch(err => {
             console.error(err);
         });
@@ -68,11 +65,8 @@ program
         // 投稿IDを取得
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
-            // 画像のパス
             const path = options.media || '';
-            // にゃーん
             text = (options.nyaan || !text) ? 'にゃーん' : text;
-            // ツイート
             await tweet.tweetPost(text, path, tweetId).catch(err => {
                 console.error(err);
             });
@@ -334,12 +328,9 @@ if (process.argv[2]){
 async function interactive(){
     // とりあえずタイムライン表示
     tweetsData = await tweet.getTimeline(20).catch(err => {console.error(err)});
-    // ループ
     let array = '';
     while (1) {
-        // 入力待ち
         array = await util.readlineSync().catch(err => {console.error(err)});
-        // コマンド実行
         try {
             await program.parseAsync(array, {from: 'user'});
         } catch(err) {

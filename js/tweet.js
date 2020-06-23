@@ -348,7 +348,7 @@ function showUserInfo(user, connections){
     // ツイート数
     const tweetCount = `${user.statuses_count} tweets`;
 
-    // 表示する
+    // 表示
     console.log(`${'='.repeat(width)}\n`.rainbow);
     console.log(`  ${userName}  ${tweetCount.brightCyan}\n`);
     console.log(`      desc: ${description}`);
@@ -385,15 +385,16 @@ function showTweet(tweets){
         // フッター
         const fotter = createFotter(tweet);
 
-        // リプライだった場合の表示
+        // リプライの表示
         let rpToUser = tweet.in_reply_to_screen_name;
         if (rpToUser){
             console.log(`Reply to @${rpToUser}`.brightGreen);
         };
-        // ツイートを表示
+        // RTの表示
         if (rtByUser){
             console.log(rtByUser.green);
         };
+        // ツイートを表示
         console.log(header + '\n');
         console.log(postText);
         console.log(fotter);
@@ -410,13 +411,15 @@ function createHeader(user){
     // ユーザー情報
     const userName = util.optimizeText(user.name);
     const userId = `  @${user.screen_name}`;
-    // 公式・鍵アカウント
-    const badge = (
-          (user.verified) ? ' [verified]'.cyan
-        : (user.protected) ? ' [private]'.gray
-        : ''
-    );
-    // ヘッダー
+    // 公式アカウント
+    if (user.verified){
+        badge += ' [verified]'.cyan;
+    };
+    // 鍵アカウント
+    if (user.protected){
+        badge += ' [private]'.gray;
+    };
+    // 連結
     const header = userName.bold.underline + userId.dim + badge;
     return header;
 };
@@ -430,10 +433,9 @@ function createTweet(tweet){
     const width = process.stdout.columns;
     const post = tweet.text;
     let result = '';
-    // 改行で分割
     let posts = post.split('\n');
+    // 一行に収まらない場合、折り返す
     for (text of posts){
-        // 一行に収まらない場合、折り返す
         text = util.optimizeText(text);
         text = '  ' + util.insert(text, (width - 4), '\n  ');
         result += text + '\n';
@@ -485,12 +487,12 @@ function createFotter(tweet){
     };
     // いいねとRT情報
     const impression = (textCount) ? ' '.repeat(width - textCount) + `${favText}${rtText}\n` : '';
-
     // via
     const start = tweet.source.indexOf('>') + 1;
     const end = tweet.source.indexOf('</a>');
     let via = `via ${tweet.source.slice(start, end)} `;
-    // フッター
+
+    // 連結
     const postTime = `${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}  `;
     textCount = postTime.length + util.getStrWidth(via);
     const fotter = ' '.repeat(width - textCount) + postTime.cyan + via.brightBlue;
