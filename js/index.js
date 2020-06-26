@@ -36,7 +36,7 @@ program
 program
     .command('tweet [text]')
     .alias('tw')
-    .description('ツイートします (スペースを含む文は"で囲んでね)')
+    .description('ツイートします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .option('-n, --nyaan', '鳴き声を世界に発信します')
     .action(async (text, options) => {
@@ -58,7 +58,7 @@ program
 program
     .command('reply <index> [text]')
     .alias('rp')
-    .description('リプライします (スペースを含む文は"で囲んでね)')
+    .description('リプライします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .option('-n, --nyaan', '鳴き声で返信します')
     .action(async (index, text, options) => {
