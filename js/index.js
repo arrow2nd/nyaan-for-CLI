@@ -38,10 +38,9 @@ program
     .alias('tw')
     .description('ツイートします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
-    .option('-n, --nyaan', '鳴き声を世界に発信します')
     .action(async (text, options) => {
         const path = options.media || '';
-        text = (options.nyaan || !text) ? 'にゃーん' : text;
+        text = (!text) ? 'にゃーん' : text;
         await tweet.tweetPost(text, path, '').catch(err => {
             console.error(err);
         });
@@ -60,13 +59,12 @@ program
     .alias('rp')
     .description('リプライします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
-    .option('-n, --nyaan', '鳴き声で返信します')
     .action(async (index, text, options) => {
         // 投稿IDを取得
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId){
             const path = options.media || '';
-            text = (options.nyaan || !text) ? 'にゃーん' : text;
+            text = (!text) ? 'にゃーん' : text;
             await tweet.tweetPost(text, path, tweetId).catch(err => {
                 console.error(err);
             });
@@ -198,8 +196,8 @@ program
  * いいねとリツイートを同時にする
  */
 program
-    .command('favrt <index>')
-    .alias('frt')
+    .command('fav&rt <index>')
+    .alias('favrt')
     .description('いいねとリツイートします')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
