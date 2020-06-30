@@ -329,6 +329,11 @@ async function interactive(){
     let array = '';
     while (1) {
         array = await util.readlineSync().catch(err => {console.error(err)});
+        // 空エンターでTL更新
+        if (!array[0]){
+            array[0] = 'tl';
+        };
+        // コマンドを解析
         try {
             await program.parseAsync(array, {from: 'user'});
         } catch(err) {
