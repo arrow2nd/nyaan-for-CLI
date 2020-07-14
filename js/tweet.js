@@ -24,13 +24,13 @@ const client = new Twitter({
  */
 async function tweetPost(tweetText, mediaPaths, replyToPostId){
     let status = {};
-    let action = 'ツイート';
+    let action = 'Tweeted:';
 
     // テキストを追加
     status.status = tweetText;
     // リプライ
     if (replyToPostId){
-        action = 'リプライ';
+        action = 'Replied:';
         status.in_reply_to_status_id = replyToPostId;
         status.auto_populate_reply_metadata = true;
     };
@@ -45,7 +45,7 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId){
         util.showAPIErrorMsg(err);
     });
     if (tweet){
-        console.log(`${action}しました！: `.cyan + tweet.text);
+        console.log(action.bgBlue + ` ${tweet.text}`);
     };
 };
 
@@ -64,7 +64,7 @@ async function upload(mediaPaths){
         try {
             fs.statSync(filePath);
         } catch(err) {
-            console.error(`ファイルが見つかりません(${filePath})`.brightRed);
+            console.error('Error:'.bgRed + ` ファイルが見つかりません (${filePath})`.brightRed);
             continue;
         };
         // 拡張子を確認
@@ -76,13 +76,13 @@ async function upload(mediaPaths){
             try {
                 media = await client.post('media/upload', {media: file});
             } catch(err) {
-                console.error(`アップロードに失敗しました(${filePath})`.brightRed);
+                console.error('Error:'.bgRed + `アップロードに失敗しました (${filePath})`.brightRed);
                 continue;
             };
             mediaIds += media.media_id_string + ',';
-            console.log('アップロードしました！： '.cyan + filePath);
+            console.log('Success:'.bgGreen + ` アップロードしました！(${filePath})`.brightGreen);
         } else {
-            console.error(`未対応の拡張子です(${ext})`.brightRed);
+            console.error('Error:'.bgRed + ` 未対応の拡張子です (${ext})`.brightRed);
             continue;
         };
     };
@@ -100,7 +100,7 @@ async function deleteTweet(tweetId){
     if (tweet){
         const width = process.stdout.columns - 20;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
-        console.log('削除しました！: '.cyan + text);
+        console.log('Deleted:'.bgBlue + ` ${text}`);
     };
 };
 
@@ -115,10 +115,10 @@ async function favorite(tweetId, mode){
         util.showAPIErrorMsg(err);
     });
     if (tweet){
-        const msg = (mode) ? 'いいねを取り消しました！: ' : 'いいねしました！: ';
-        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
+        const msg = (mode) ? 'Un-liked:' : 'Liked:';
+        const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
-        console.log(msg.cyan + text);
+        console.log(msg.bgBlue + ` ${text}`);
     };
 };
 
@@ -133,10 +133,10 @@ async function retweet(tweetId, mode){
         util.showAPIErrorMsg(err);
     });
     if (tweet){
-        const msg = (mode) ? 'リツイートを取り消しました！: ' : 'リツイートしました！: ';
-        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
+        const msg = (mode) ? 'Un-retweeted:' : 'Retweeted:';
+        const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
-        console.log(msg.cyan + text);
+        console.log(msg.bgBlue + ` ${text}`);
     };
 };
 
@@ -151,10 +151,10 @@ async function follow(userId, mode){
         util.showAPIErrorMsg(err);
     });
     if (user){
-        const msg = (mode) ? 'フォローを解除しました: ' : 'フォローしました！: ';
-        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
+        const msg = (mode) ? 'Un-followed:' : 'Followed:';
+        const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
-        console.log(msg.cyan + text);
+        console.log(msg.bgBlue + ` ${text}`);
     };
 };
 
@@ -169,10 +169,10 @@ async function block(userId, mode){
         util.showAPIErrorMsg(err);
     });
     if (user){
-        const msg = (mode) ? 'ブロックを解除しました: ' : 'ブロックしました: ';
-        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
+        const msg = (mode) ? 'Un-blocked:' : 'Blocked:';
+        const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
-        console.log(msg.cyan + text);
+        console.log(msg.bgBlue + ` ${text}`);
     };
 };
 
@@ -187,10 +187,10 @@ async function mute(userId, mode){
         util.showAPIErrorMsg(err);
     });
     if (user){
-        const msg = (mode) ? 'ミュートを解除しました: ' : 'ミュートしました: ';
-        const width = process.stdout.columns - util.getStrWidth(msg) - 4;
+        const msg = (mode) ? 'Un-muted:' : 'Muted:';
+        const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
-        console.log(msg.cyan + text);
+        console.log(msg.bgBlue + ` ${text}`);
     };
 };
 
@@ -285,7 +285,7 @@ async function searchTweet(query, count){
  */
 function getTweetId(tweets, index){
     if (index > tweets.length - 1){
-        console.error('Error: ツイートが存在しません'.brightRed);
+        console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
     };
     return tweets[index].id_str;
@@ -300,7 +300,7 @@ function getTweetId(tweets, index){
  */
 function getUserId(tweets, index, mode){
     if (index > tweets.length - 1){
-        console.error('Error: ツイートが存在しません'.brightRed);
+        console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
     };
     // RTの場合はRT元のスクリーンネーム

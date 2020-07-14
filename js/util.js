@@ -62,14 +62,10 @@ function getStrWidth(text){
 function insert(text, length, add){
     let start = 0, result = '', rest = text;
     while (length < getStrWidth(rest)){
-        // 範囲切り出し
-        result += strCat(text, start, length, 0);
-        // 次の切り出し位置をズラす
-        start = result.length;
-        // 指定の文字を追加
-        result += add;
-        // 残り
-        rest = text.slice(start);
+        result += strCat(text, start, length, 0); // 範囲切り出し
+        start = result.length;                    // 次の切り出し位置をズラす
+        result += add;                            // 指定の文字を追加
+        rest = text.slice(start);                 // 残り
     };
     // 残りの文字列を結合
     result += rest;
@@ -138,7 +134,7 @@ function showAPIErrorMsg(error){
     };
     // オブジェクトが無い場合
     if (!error[0]){
-        console.log('Error: エラー内容が取得できませんでした'.brightRed);
+        console.log('Error:'.bgRed + ' エラー内容が取得できませんでした'.brightRed);
         return;
     };
 
@@ -148,7 +144,7 @@ function showAPIErrorMsg(error){
     if (!msg){
         msg = error[0].message;
     };
-    console.log(`Error: ${msg}(${code})`.brightRed);
+    console.log('Error:'.bgRed + ` ${msg}(${code})`.brightRed);
 };
 
 /**

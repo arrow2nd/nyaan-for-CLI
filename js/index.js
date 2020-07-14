@@ -6,6 +6,7 @@ const colors = require('colors');
 const tweet = require('./tweet.js');
 const util = require('./util.js');
 
+
 // どうしてこうなった
 let tweetsData = [];
 
@@ -24,7 +25,7 @@ program.name('nyaan').usage('command [オプション]');
  */
 program
     .command('clear')
-    .alias('cls')
+    .alias('c')
     .description('コンソールをクリアします')
     .action(() => {
         console.clear();
@@ -159,7 +160,7 @@ program
     .command('favorite <index>')
     .alias('fav')
     .description('いいね！します')
-    .option('-r, --remove', 'いいねを取り消します')
+    .option('-d, --delete', 'いいねを取り消します')
     .action(async (index, options) => {
         // 0: 取り消し 1: いいね
         const mode = (options.remove) ? 1 : 0;
@@ -179,7 +180,7 @@ program
     .command('retweet <index>')
     .alias('rt')
     .description('リツイートします')
-    .option('-r, --remove', 'リツイートを取り消します')
+    .option('-d, --delete', 'リツイートを取り消します')
     .action(async (index, options) => {
         // 0: 取り消す 1: リツイート
         const mode = (options.remove) ? 1 : 0;
@@ -218,7 +219,7 @@ program
     .command('follow [userId]')
     .alias('fw')
     .description('ユーザーをフォローします')
-    .option('-r, --remove', 'フォローを解除します')
+    .option('-d, --delete', 'フォローを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
         // userIdが指定されていない場合、インデックス0を指定
@@ -246,7 +247,7 @@ program
     .command('block [userId]')
     .alias('bk')
     .description('ユーザーをブロックします')
-    .option('-r, --remove', 'ブロックを解除します')
+    .option('-d, --delete', 'ブロックを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
         // userIdが指定されていない場合、インデックス0を指定
@@ -274,7 +275,7 @@ program
     .command('mute [userId]')
     .alias('mt')
     .description('ユーザーをミュートします')
-    .option('-r, --remove', 'ミュートを解除します')
+    .option('-d, --delete', 'ミュートを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
         // userIdが指定されていない場合、インデックス0を指定
