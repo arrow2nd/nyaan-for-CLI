@@ -107,7 +107,26 @@ program
     .description('タイムラインを表示します')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await tweet.getTimeline(counts).catch(err => {
+        const timeline = await tweet.getTimeline(0, counts).catch(err => {
+            console.error(err);
+        });
+        tweetsData = (timeline) ? timeline : tweetsData;
+    }).on('--help', () => {
+        console.log('\nTips:');
+        console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
+    });
+
+
+/**
+ * メンション
+ */
+program
+    .command('mentionTL [counts]')
+    .alias('mtl')
+    .description('自分宛てのメンションを表示します')
+    .action(async (counts) => {
+        counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
+        const timeline = await tweet.getTimeline(1, counts).catch(err => {
             console.error(err);
         });
         tweetsData = (timeline) ? timeline : tweetsData;
@@ -121,7 +140,7 @@ program
  * ユーザーのタイムライン
  */
 program
-    .command('usertimeline [userId] [counts]')
+    .command('userTL [userId] [counts]')
     .alias('utl')
     .description('ユーザーのタイムラインを表示します')
     .action(async (userId, counts) => {
@@ -150,7 +169,7 @@ program
     .alias('sch')
     .description('キーワードからツイートを検索します')
     .action(async (keyword, counts) => {
-        counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
+        counts = (!counts || counts < 1 || counts > 100) ? 20 : counts;
         const tweets = await tweet.searchTweet(keyword, counts).catch(err => {
             console.error(err);
         });
@@ -339,17 +358,17 @@ if (process.argv[2]){
  */
 async function interactive(){
     // とりあえずタイムライン表示
-    tweetsData = await tweet.getTimeline(20).catch(err => {console.error(err)});
+    tweetsData = await tweet.getTimeline(0, 20).catch(err => { console.error(err) });
     let array = '';
     while (1) {
-        array = await util.readlineSync().catch(err => {console.error(err)});
+        array = await util.readlineSync().catch(err => { console.error(err) });
         // 空エンターでTL更新
         if (!array[0]){
             array[0] = 'tl';
         };
         // コマンドを解析
         try {
-            await program.parseAsync(array, {from: 'user'});
+            await program.parseAsync(array, { from: 'user' });
         } catch(err) {
             util.showCMDErrorMsg(err);
         };

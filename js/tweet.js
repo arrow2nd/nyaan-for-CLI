@@ -24,7 +24,7 @@ const client = new Twitter({
  * @param {String} mediaPaths    添付する画像のパス(複数ある場合は,区切り)
  * @param {String} replyToPostId リプライ先の投稿ID
  */
-async function tweetPost(tweetText, mediaPaths, replyToPostId){
+async function tweetPost(tweetText, mediaPaths, replyToPostId) {
     let status = {};
     let action = 'Tweeted:';
 
@@ -58,7 +58,7 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId){
  * @param  {String} mediaPaths カンマで区切った画像のパス
  * @return {String}            メディアID
  */
-async function upload(mediaPaths){
+async function upload(mediaPaths) {
     const paths = mediaPaths.split(',');
     const pathLength = (paths.length > 4) ? 4 : paths.length;
     let mediaIds = '';
@@ -100,7 +100,7 @@ async function upload(mediaPaths){
  * ツイートを削除する
  * @param {String} tweetId ツイートID
  */
-async function deleteTweet(tweetId){
+async function deleteTweet(tweetId) {
     const tweet = await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
@@ -116,7 +116,7 @@ async function deleteTweet(tweetId){
  * @param {String}  tweetId ツイートID
  * @param {Boolean} mode    いいねを取り消すかどうか
  */
-async function favorite(tweetId, mode){
+async function favorite(tweetId, mode) {
     const type = ['create', 'destroy'];
     const tweet = await client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
         util.showAPIErrorMsg(err);
@@ -134,7 +134,7 @@ async function favorite(tweetId, mode){
  * @param {String}  tweetId ツイートID
  * @param {Boolean} mode    リツイートを取り消すかどうか
  */
-async function retweet(tweetId, mode){
+async function retweet(tweetId, mode) {
     const type = ['retweet', 'unretweet'];
     const tweet = await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
         util.showAPIErrorMsg(err);
@@ -152,7 +152,7 @@ async function retweet(tweetId, mode){
  * @param {String}  userId ユーザーのスクリーンネーム
  * @param {Boolean} mode   フォローを解除するかどうか
  */
-async function follow(userId, mode){
+async function follow(userId, mode) {
     const type = ['create', 'destroy'];
     const user = await client.post(`friendships/${type[mode]}`, {screen_name: userId}).catch(err => {
         util.showAPIErrorMsg(err);
@@ -170,7 +170,7 @@ async function follow(userId, mode){
  * @param {String}  userId ユーザーのスクリーンネーム
  * @param {Boolean} mode   ブロックを解除するかどうか
  */
-async function block(userId, mode){
+async function block(userId, mode) {
     const type = ['create', 'destroy'];
     const user = await client.post(`blocks/${type[mode]}`, {screen_name: userId}).catch(err => {
         util.showAPIErrorMsg(err);
@@ -188,7 +188,7 @@ async function block(userId, mode){
  * @param {String}  userId ユーザーのスクリーンネーム
  * @param {Boolean} mode   ミュートを解除するかどうか
  */
-async function mute(userId, mode){
+async function mute(userId, mode) {
     const type = ['create', 'destroy'];
     const user = await client.post(`mutes/users/${type[mode]}`, {screen_name: userId}).catch(err => {
         util.showAPIErrorMsg(err);
@@ -204,15 +204,21 @@ async function mute(userId, mode){
 
 /**
  * タイムラインを取得する
+ * @param  {Number} mode  0: TL取得/1: メンション取得
  * @param  {Number} count 取得件数（最大200件）
  * @return {Array}        取得したツイート
  */
-async function getTimeline(count){
-    const param = {
-        count: count,
-        exclude_replies: true,
+async function getTimeline(mode, count) {
+    const type = ['home_timeline', 'mentions_timeline'];
+    let param = { count: count };
+
+    // TL取得モード(mode:0)の場合は、リプライを含めない
+    if (mode == 0) {
+        param.exclude_replies = true;
     };
-    const tweets = await client.get('statuses/home_timeline', param).catch(err => {
+
+    // 取得
+    const tweets = await client.get(`statuses/${type[mode]}`, param).catch(err => {
         util.showAPIErrorMsg(err);
     });
     if (tweets) {
@@ -227,7 +233,7 @@ async function getTimeline(count){
  * @param  {Number} count  取得件数（最大200件）
  * @return {Array}         取得したツイート
  */
-async function getUserTimeline(userId, count){
+async function getUserTimeline(userId, count) {
     let param = { count: count };
     
     // ユーザーIDがあれば追加する
@@ -255,7 +261,7 @@ async function getUserTimeline(userId, count){
  * @param  {String} userId ユーザーID
  * @return {Object}        対象ユーザーとの関係
  */
-async function getUserLookup(userId){
+async function getUserLookup(userId) {
     let connections = {};
     const lookup = await client.get('friendships/lookup', {user_id: userId}).catch(err => {
         util.showAPIErrorMsg(err);
@@ -271,10 +277,10 @@ async function getUserLookup(userId){
 /**
  * キーワードからツイートを検索する
  * @param  {String} query 検索キーワード
- * @param  {Number} count 取得件数（最大200件）
+ * @param  {Number} count 取得件数（最大100件）
  * @return {Array}        取得したツイート
  */
-async function searchTweet(query, count){
+async function searchTweet(query, count) {
     const tweets = await client.get('search/tweets', {q: `${query}  exclude:retweets`, count: count}).catch(err => {
         util.showAPIErrorMsg(err);
     });
@@ -290,7 +296,7 @@ async function searchTweet(query, count){
  * @param  {Number} index  ツイートのインデックス
  * @return {String}        ツイートID
  */
-function getTweetId(tweets, index){
+function getTweetId(tweets, index) {
     if (index > tweets.length - 1){
         console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
@@ -305,7 +311,7 @@ function getTweetId(tweets, index){
  * @param  {Boolean} mode   RTだった場合、RT元のユーザーを取得する
  * @return {String}         スクリーンネーム
  */
-function getUserId(tweets, index, mode){
+function getUserId(tweets, index, mode) {
     if (index > tweets.length - 1){
         console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
@@ -324,7 +330,7 @@ function getUserId(tweets, index, mode){
  * @param {Object} user        ユーザーオブジェクト
  * @param {Object} connections ユーザーとの関係情報
  */
-function showUserInfo(user, connections){
+function showUserInfo(user, connections) {
     // 画面幅
     const width = process.stdout.columns;
 
@@ -380,7 +386,7 @@ function showUserInfo(user, connections){
  * ツイートを表示
  * @param {Array} tweets ツイートオブジェクト
  */
-function showTweet(tweets){
+function showTweet(tweets) {
     // 画面幅
     const width = process.stdout.columns;
 
@@ -428,7 +434,7 @@ function showTweet(tweets){
  * @param  {Object} tweet ユーザーオブジェクト
  * @return {String}       ヘッダー
  */
-function createHeader(user){
+function createHeader(user) {
     // ユーザー情報
     const userName = util.optimizeText(user.name);
     const userId = `  @${user.screen_name}`;
@@ -454,7 +460,7 @@ function createHeader(user){
  * @param  {Object} tweet ツイートオブジェクト
  * @return {String}       ツイート内容
  */
-function createTweet(tweet){
+function createTweet(tweet) {
     const width = process.stdout.columns;
     const post = tweet.text;
     let result = '';
@@ -494,7 +500,7 @@ function createTweet(tweet){
  * @param  {Object} tweet ツイートオブジェクト
  * @return {String}       フッター
  */
-function createFotter(tweet){
+function createFotter(tweet) {
     const width = process.stdout.columns;
     let textCount = 0;
 
