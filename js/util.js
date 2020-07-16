@@ -112,7 +112,6 @@ function strCat(text, start, length, mode) {
 function optimizeText(text) {
     text = text.replace(/　/g, ' ');                        // 全角スペース
     text = text.replace(/\n/g, ' ');                        // 改行コード
-    text = emoji.replace(text, (moji) => `${moji.emoji} `); // 絵文字
     return text;
 }
 
