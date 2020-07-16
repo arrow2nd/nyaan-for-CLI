@@ -1,7 +1,8 @@
 'use strict';
 const readline = require('readline');
 const colors = require('colors');
-const emoji = require('node-emoji');
+const emoji = require('node-emoji-new');
+const split = require('graphemesplit');
 
 
 /**
@@ -43,7 +44,8 @@ function sortTag(array, key) {
  */
 function getStrWidth(text) {
     let len = 0;
-    for (let value of text) {
+    const words = split(text);
+    for (let value of words) {
         if (!value.match(/[^\x01-\x7E]/) || !value.match(/[^\uFF65-\uFF9F]/)) {
             len ++;
         } else {
@@ -83,8 +85,10 @@ function insert(text, length, add) {
  */
 function strCat(text, start, length, mode) {
     let index, len, result = '';
+    const words = split(text);
+
     for (index = start, len = length; len > 0; index++, len--) {
-        const value = text[index];
+        const value = words[index];
         if (!value) {
             break;
         } else if (getStrWidth(value) == 2) {
@@ -92,6 +96,7 @@ function strCat(text, start, length, mode) {
         };
         result += value;
     };
+
     // 文末に…を追加
     if (mode && text.length != index) {
         result += '…';

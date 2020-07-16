@@ -20,7 +20,6 @@ program.version(packageJson.version, '-v, --version');
 program.name('nyaan').usage('command [オプション]');
 
 
-
 /**
  * コンソールをクリアする
  */
