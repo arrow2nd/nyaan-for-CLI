@@ -460,7 +460,7 @@ function createHeader(user) {
     };
 
     // 連結
-    const header = userName.bold.underline + userId.dim + badge;
+    const header = userName.bold + userId.dim + badge;
     return header;
 };
 
