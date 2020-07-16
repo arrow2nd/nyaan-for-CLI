@@ -30,15 +30,16 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId) {
 
     // テキストを追加
     status.status = tweetText;
+    
     // リプライ
-    if (replyToPostId){
+    if (replyToPostId) {
         action = 'Replied:';
         status.in_reply_to_status_id = replyToPostId;
         status.auto_populate_reply_metadata = true;
     };
 
     // 画像があればアップロードする
-    if (mediaPaths){
+    if (mediaPaths) {
         status.media_ids = await upload(mediaPaths).catch(err => {
             util.showAPIErrorMsg(err);
         });
@@ -48,7 +49,7 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId) {
     const tweet = await client.post('statuses/update', status).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (tweet){
+    if (tweet) {
         console.log(action.bgBlue + ` ${tweet.text}`);
     };
 };
@@ -63,7 +64,7 @@ async function upload(mediaPaths) {
     const pathLength = (paths.length > 4) ? 4 : paths.length;
     let mediaIds = '';
 
-    for (let i = 0; i < pathLength; i++){
+    for (let i = 0; i < pathLength; i++) {
         const filePath = paths[i].trim();
 
         // 画像があるか確認
@@ -76,7 +77,7 @@ async function upload(mediaPaths) {
 
         // 拡張子を確認
         const ext = path.extname(filePath).toLowerCase();
-        if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif'){
+        if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif') {
             const file = fs.readFileSync(filePath);
             // アップロード
             let media;
@@ -104,7 +105,7 @@ async function deleteTweet(tweetId) {
     const tweet = await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (tweet){
+    if (tweet) {
         const width = process.stdout.columns - 20;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
         console.log('Deleted:'.bgBlue + ` ${text}`);
@@ -121,7 +122,7 @@ async function favorite(tweetId, mode) {
     const tweet = await client.post(`favorites/${type[mode]}`, {id: tweetId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (tweet){
+    if (tweet) {
         const msg = (mode) ? 'Un-liked:' : 'Liked:';
         const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
@@ -139,7 +140,7 @@ async function retweet(tweetId, mode) {
     const tweet = await client.post(`statuses/${type[mode]}/${tweetId}`, {id: tweetId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (tweet){
+    if (tweet) {
         const msg = (mode) ? 'Un-retweeted:' : 'Retweeted:';
         const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
@@ -157,7 +158,7 @@ async function follow(userId, mode) {
     const user = await client.post(`friendships/${type[mode]}`, {screen_name: userId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (user){
+    if (user) {
         const msg = (mode) ? 'Un-followed:' : 'Followed:';
         const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
@@ -175,7 +176,7 @@ async function block(userId, mode) {
     const user = await client.post(`blocks/${type[mode]}`, {screen_name: userId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (user){
+    if (user) {
         const msg = (mode) ? 'Un-blocked:' : 'Blocked:';
         const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
@@ -193,7 +194,7 @@ async function mute(userId, mode) {
     const user = await client.post(`mutes/users/${type[mode]}`, {screen_name: userId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (user){
+    if (user) {
         const msg = (mode) ? 'Un-muted:' : 'Muted:';
         const width = process.stdout.columns - msg.length - 3;
         const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
@@ -237,7 +238,7 @@ async function getUserTimeline(userId, count) {
     let param = { count: count };
     
     // ユーザーIDがあれば追加する
-    if (userId){
+    if (userId) {
         param.screen_name = userId.replace(/@|＠/, '');
     };
 
@@ -245,7 +246,7 @@ async function getUserTimeline(userId, count) {
     const tweets = await client.get('statuses/user_timeline', param).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (tweets){
+    if (tweets) {
         // 対象ユーザーと自分との関係を取得
         const connections = await getUserLookup(tweets[0].user.id_str).catch(err => {console.error(err)});
         // ツイートを表示
@@ -266,8 +267,8 @@ async function getUserLookup(userId) {
     const lookup = await client.get('friendships/lookup', {user_id: userId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (lookup){
-        for (let connection of lookup[0].connections){
+    if (lookup) {
+        for (let connection of lookup[0].connections) {
             connections[connection] = true;
         };
     };
@@ -284,7 +285,7 @@ async function searchTweet(query, count) {
     const tweets = await client.get('search/tweets', {q: `${query}  exclude:retweets`, count: count}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    if (tweets){
+    if (tweets) {
         showTweet(tweets.statuses);
     };
     return tweets;
@@ -297,7 +298,11 @@ async function searchTweet(query, count) {
  * @return {String}        ツイートID
  */
 function getTweetId(tweets, index) {
-    if (index > tweets.length - 1){
+    if (isNaN(index)) {
+        console.error('Error:'.bgRed + ' インデックスが不正です'.brightRed);
+        return '';
+    };
+    if (index > tweets.length - 1) {
         console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
     };
@@ -312,12 +317,16 @@ function getTweetId(tweets, index) {
  * @return {String}         スクリーンネーム
  */
 function getUserId(tweets, index, mode) {
-    if (index > tweets.length - 1){
+    if (isNaN(index)) {
+        console.error('Error:'.bgRed + ' インデックスが不正です'.brightRed);
+        return '';
+    };
+    if (index > tweets.length - 1) {
         console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
     };
     // RTの場合はRT元のスクリーンネーム
-    if (mode ==1 && tweets[index].retweeted_status){
+    if (mode ==1 && tweets[index].retweeted_status ){
         return tweets[index].retweeted_status.user.screen_name;
     } else {
         return tweets[index].user.screen_name;
@@ -360,10 +369,10 @@ function showUserInfo(user, connections) {
     follower = (connections.following) ? `${follower} ${'[following]'.cyan}` : follower;
 
     // ブロック・ミュート状況
-    if (connections.blocking){
+    if (connections.blocking) {
         follower += ' [blocking]'.red;
     };
-    if (connections.muting){
+    if (connections.muting) {
         follower += ' [muting]'.yellow;
     };
 
@@ -395,11 +404,11 @@ function showTweet(tweets) {
     console.log(hr);
     
     // ツイートの解析
-    for (let i = tweets.length - 1;i >= 0;i--){
+    for (let i = tweets.length - 1;i >= 0;i--) {
         let tweet = tweets[i];
         // 公式RTだった場合、RT元のツイートに置き換える
         let rtByUser;
-        if (tweet.retweeted_status){
+        if (tweet.retweeted_status) {
             rtByUser = `RT by ${util.optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;
             tweet = tweet.retweeted_status;
         };
@@ -411,13 +420,13 @@ function showTweet(tweets) {
         const fotter = createFotter(tweet);
 
         // RTの表示
-        if (rtByUser){
+        if (rtByUser) {
             console.log(rtByUser.green);
         };
 
         // リプライの表示
         let rpToUser = tweet.in_reply_to_screen_name;
-        if (rpToUser){
+        if (rpToUser) {
             console.log(`Reply to @${rpToUser}`.brightGreen);
         };
 
@@ -441,12 +450,12 @@ function createHeader(user) {
     let badge = '';
 
     // 公式アカウント
-    if (user.verified){
+    if (user.verified) {
         badge += ' [verified]'.cyan;
     };
 
     // 鍵アカウント
-    if (user.protected){
+    if (user.protected) {
         badge += ' [private]'.gray;
     };
 
@@ -467,7 +476,7 @@ function createTweet(tweet) {
     let posts = post.split('\n');
 
     // 一行に収まらない場合、折り返す
-    for (text of posts){
+    for (text of posts) {
         text = util.optimizeText(text);
         text = '  ' + util.insert(text, (width - 4), '\n  ');
         result += text + '\n';
@@ -475,9 +484,9 @@ function createTweet(tweet) {
 
     // メンションをハイライト (途中で改行されると無力)
     let mentions = tweet.entities.user_mentions;
-    if (mentions){
+    if (mentions) {
         mentions = util.sortTag(mentions, 'screen_name');
-        for (let mention of mentions){
+        for (let mention of mentions) {
             const text = mention.screen_name;
             result = result.replace(`@${text}`, '@'.brightGreen + text.brightGreen);
         };
@@ -485,9 +494,9 @@ function createTweet(tweet) {
 
     // ハッシュタグをハイライト (途中で改行されると無力)
     let hashtags = tweet.entities.hashtags;
-    if (hashtags){
+    if (hashtags) {
         hashtags = util.sortTag(hashtags, 'text');
-        for (let tag of hashtags){
+        for (let tag of hashtags) {
             const text = tag.text;
             result = result.replace(`#${text}`, '#'.brightCyan + text.brightCyan);
         };
@@ -507,7 +516,7 @@ function createFotter(tweet) {
     // いいね
     const favCount = tweet.favorite_count;
     let favText = '';
-    if (favCount){
+    if (favCount) {
         favText = `fav: ${favCount}`;
         textCount += favText.length + 1;
         favText = (tweet.favorited) ? `${favText.black.bgBrightMagenta} ` : `${favText.brightMagenta} `;
@@ -516,7 +525,7 @@ function createFotter(tweet) {
     // RT
     const rtCount = tweet.retweet_count;
     let rtText = '';
-    if (rtCount){
+    if (rtCount) {
         rtText = `RT: ${rtCount}`;
         textCount += rtText.length + 2;
         rtText = (tweet.retweeted) ? ` ${rtText.black.bgBrightGreen} ` : ` ${rtText.brightGreen} `;

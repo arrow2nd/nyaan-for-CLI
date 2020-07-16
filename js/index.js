@@ -66,7 +66,7 @@ program
     .action(async (index, text, options) => {
         // 投稿IDを取得
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (tweetId){
+        if (tweetId) {
             const path = options.media || '';
             text = (!text) ? 'にゃーん' : text;
             await tweet.tweetPost(text, path, tweetId).catch(err => {
@@ -145,7 +145,7 @@ program
     .description('ユーザーのタイムラインを表示します')
     .action(async (userId, counts) => {
         // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
-        if (!isNaN(userId)){
+        if (!isNaN(userId)) {
             userId = tweet.getUserId(tweetsData, Number(userId), 1);
         };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
@@ -192,7 +192,7 @@ program
         // 0: 取り消し 1: いいね
         const mode = (options.remove) ? 1 : 0;
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (tweetId){
+        if (tweetId) {
             await tweet.favorite(tweetId, mode).catch(err => {
                 console.error(err);
             });
@@ -231,7 +231,7 @@ program
     .description('いいねとリツイートします')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
-        if (tweetId){
+        if (tweetId) {
             await tweet.favorite(tweetId, 0).catch(err => {
                 console.error(err);
             });
@@ -255,10 +255,10 @@ program
         // userIdが指定されていない場合、インデックス0を指定
         userId = (userId) ? userId : '0';
         // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
-        if (!isNaN(userId)){
+        if (!isNaN(userId)) {
             userId = tweet.getUserId(tweetsData, Number(userId), 0);
         };
-        if (userId){
+        if (userId) {
             await tweet.follow(userId, mode).catch(err => {
                 console.error(err);
             });
@@ -284,10 +284,10 @@ program
         // userIdが指定されていない場合、インデックス0を指定
         userId = (userId) ? userId : '0';
         // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
-        if (!isNaN(userId)){
+        if (!isNaN(userId)) {
             userId = tweet.getUserId(tweetsData, Number(userId), 0);
         };
-        if (userId){
+        if (userId) {
             await tweet.block(userId, mode).catch(err => {
                 console.error(err);
             });
@@ -313,10 +313,10 @@ program
         // userIdが指定されていない場合、インデックス0を指定
         userId = (userId) ? userId : '0';
         // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
-        if (!isNaN(userId)){
+        if (!isNaN(userId)) {
             userId = tweet.getUserId(tweetsData, Number(userId), 0);
         };
-        if (userId){
+        if (userId) {
             await tweet.mute(userId, mode).catch(err => {
                 console.error(err);
             });
@@ -342,7 +342,7 @@ program
 
 
 // コマンドがあれば解析、なければ対話型のやつを開始
-if (process.argv[2]){
+if (process.argv[2]) {
     try {
         program.parse(process.argv);
     } catch(err) {
@@ -363,7 +363,7 @@ async function interactive(){
     while (1) {
         array = await util.readlineSync().catch(err => { console.error(err) });
         // 空エンターでTL更新
-        if (!array[0]){
+        if (!array[0]) {
             array[0] = 'tl';
         };
         // コマンドを解析

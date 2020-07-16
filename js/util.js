@@ -8,14 +8,14 @@ const emoji = require('node-emoji');
  * コンソールからの入力を受け付ける
  * @return {Array} 文字列配列
  */
-function readlineSync(){
+function readlineSync() {
     return new Promise((resolve) => {
         const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout
         });
         // 入力受付
-        rl.question('nyaan '.bold.cyan + '>'.brightWhite + '>'.brightCyan + '> '.cyan, (input) => {
+        rl.question('>'.brightWhite + '>'.brightCyan + '> '.cyan, (input) => {
             rl.close();
             resolve(input.split(' '));
         });
@@ -28,7 +28,7 @@ function readlineSync(){
  * @param  {String} key   比較する要素のキー
  * @return {Array}        ソートした文字列配列
  */
-function sortTag(array, key){
+function sortTag(array, key) {
     return array.sort((a,b) => {
         if (a[key].length > b[key].length) return -1;
         if (a[key].length < b[key].length) return 1;
@@ -41,9 +41,9 @@ function sortTag(array, key){
  * @param  {String} text テキスト
  * @return {Number}      全角文字を2とした文字列全体の表示幅
  */
-function getStrWidth(text){
+function getStrWidth(text) {
     let len = 0;
-    for (let value of text){
+    for (let value of text) {
         if (!value.match(/[^\x01-\x7E]/) || !value.match(/[^\uFF65-\uFF9F]/)) {
             len ++;
         } else {
@@ -60,9 +60,9 @@ function getStrWidth(text){
  * @param  {String} add    挿入する文字
  * @return {String}        編集後の文字列
  */
-function insert(text, length, add){
+function insert(text, length, add) {
     let start = 0, result = '', rest = text;
-    while (length < getStrWidth(rest)){
+    while (length < getStrWidth(rest)) {
         result += strCat(text, start, length, 0); // 範囲切り出し
         start = result.length;                    // 次の切り出し位置をズラす
         result += add;                            // 指定の文字を追加
@@ -81,41 +81,41 @@ function insert(text, length, add){
  * @param  {boolean} mode   …を末尾につけるか
  * @return {String}         切り出した文字列
  */
-function strCat(text, start, length, mode){
+function strCat(text, start, length, mode) {
     let index, len, result = '';
-    for (index = start, len = length; len > 0; index++, len--){
+    for (index = start, len = length; len > 0; index++, len--) {
         const value = text[index];
-        if (!value){
+        if (!value) {
             break;
-        } else if (getStrWidth(value) == 2){
+        } else if (getStrWidth(value) == 2) {
             len--;
         };
         result += value;
     };
-    // …
-    if (mode && text.length != index){
+    // 文末に…を追加
+    if (mode && text.length != index) {
         result += '…';
     };
     return result;
 };
 
 /**
- * 文字列から全角スペース・改行・絵文字を取り除く
+ * 文字列を最適化する
  * @param  {String} text 文字列
  * @return {String}      編集後の文字列
  */
-function optimizeText(text){
-    text = text.replace(/　/g, ' ');
-    text = text.replace(/\n/g, ' ');
-    text = emoji.strip(text);
+function optimizeText(text) {
+    text = text.replace(/　/g, ' ');                        // 全角スペース
+    text = text.replace(/\n/g, ' ');                        // 改行コード
+    text = emoji.replace(text, (moji) => `${moji.emoji} `); // 絵文字
     return text;
-};
+}
 
 /**
  * TwitterAPIのエラー内容を表示
  * @param {Object} error エラーオブジェクト
  */
-function showAPIErrorMsg(error){
+function showAPIErrorMsg(error) {
     const err = {
         32: '処理を完了できませんでした',
         34: '見つかりませんでした',
@@ -135,7 +135,7 @@ function showAPIErrorMsg(error){
     };
 
     // オブジェクトが無い場合
-    if (!error[0]){
+    if (!error[0]) {
         console.log('Error:'.bgRed + ' エラー内容が取得できませんでした'.brightRed);
         return;
     };
@@ -143,7 +143,7 @@ function showAPIErrorMsg(error){
     // エラーを表示
     const code = error[0].code;
     let msg = err[code];
-    if (!msg){
+    if (!msg) {
         msg = error[0].message;
     };
     console.log('Error:'.bgRed + ` ${msg}(${code})`.brightRed);
@@ -153,7 +153,7 @@ function showAPIErrorMsg(error){
  * Commanderのエラー内容を表示
  * @param {Object} error エラーオブジェクト
  */
-function showCMDErrorMsg(error){
+function showCMDErrorMsg(error) {
     const ignore = [
         'commander.unknownCommand',
         'commander.unknownOption' ,
@@ -161,12 +161,12 @@ function showCMDErrorMsg(error){
     ];
 
     // 無視する
-    if (error.exitCode == 0){
+    if (error.exitCode == 0) {
         return;
     };
     
-    for (let code of ignore){
-        if (code == error.code){
+    for (let code of ignore) {
+        if (code == error.code) {
             return;
         };
     };
