@@ -7,6 +7,7 @@ const moment = require('moment');
 const util = require('./util.js');
 const Twitter = require('twitter');
 
+
 // 認証
 dotenv.config({path: path.join(__dirname, "../.env")});
 const client = new Twitter({
@@ -15,6 +16,7 @@ const client = new Twitter({
     access_token_key: `${process.env.ACCESS_TOKEN}`,
     access_token_secret: `${process.env.ACCESS_TOKEN_SECRET}`
 });
+
 
 /**
  * ツイートする
@@ -34,12 +36,14 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId){
         status.in_reply_to_status_id = replyToPostId;
         status.auto_populate_reply_metadata = true;
     };
+
     // 画像があればアップロードする
     if (mediaPaths){
         status.media_ids = await upload(mediaPaths).catch(err => {
             util.showAPIErrorMsg(err);
         });
     };
+
     // ツイートする
     const tweet = await client.post('statuses/update', status).catch(err => {
         util.showAPIErrorMsg(err);
@@ -51,15 +55,17 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId){
 
 /**
  * 画像をアップロードする
- * @param  {String} mediaPaths ,で区切った画像のパス
+ * @param  {String} mediaPaths カンマで区切った画像のパス
  * @return {String}            メディアID
  */
 async function upload(mediaPaths){
     const paths = mediaPaths.split(',');
     const pathLength = (paths.length > 4) ? 4 : paths.length;
     let mediaIds = '';
+
     for (let i = 0; i < pathLength; i++){
         const filePath = paths[i].trim();
+
         // 画像があるか確認
         try {
             fs.statSync(filePath);
@@ -67,6 +73,7 @@ async function upload(mediaPaths){
             console.error('Error:'.bgRed + ` ファイルが見つかりません (${filePath})`.brightRed);
             continue;
         };
+
         // 拡張子を確認
         const ext = path.extname(filePath).toLowerCase();
         if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif'){
@@ -221,13 +228,14 @@ async function getTimeline(count){
  * @return {Array}         取得したツイート
  */
 async function getUserTimeline(userId, count){
-    let param = {
-        count: count
-    };
+    let param = { count: count };
+    
     // ユーザーIDがあれば追加する
     if (userId){
         param.screen_name = userId.replace(/@|＠/, '');
     };
+
+    // 取得
     const tweets = await client.get('statuses/user_timeline', param).catch(err => {
         util.showAPIErrorMsg(err);
     });
@@ -252,7 +260,6 @@ async function getUserLookup(userId){
     const lookup = await client.get('friendships/lookup', {user_id: userId}).catch(err => {
         util.showAPIErrorMsg(err);
     });
-    // ユーザーとの関係
     if (lookup){
         for (let connection of lookup[0].connections){
             connections[connection] = true;
@@ -318,26 +325,34 @@ function getUserId(tweets, index, mode){
  * @param {Object} connections ユーザーとの関係情報
  */
 function showUserInfo(user, connections){
+    // 画面幅
     const width = process.stdout.columns;
 
     // ユーザー名・ユーザーID
     const userName = createHeader(user);
+
     // 場所
     const location = util.optimizeText(user.location);
+
     // 説明
     let description = util.optimizeText(user.description);
     description = util.insert(description, (width - 14), '\n            ');
+
     // URL
     const url = user.url;
+
     // アカウント作成日
     let createdAt = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
     createdAt =  `  created at ${createdAt}`;
+
     // フォロー数とフォローされているか
     let follow = user.friends_count;
     follow = (connections.followed_by) ? `${follow} ${'[followed by]'.cyan}` : follow;
+
     // フォロワー数とフォローしているか
     let follower = user.followers_count;
     follower = (connections.following) ? `${follower} ${'[following]'.cyan}` : follower;
+
     // ブロック・ミュート状況
     if (connections.blocking){
         follower += ' [blocking]'.red;
@@ -345,6 +360,7 @@ function showUserInfo(user, connections){
     if (connections.muting){
         follower += ' [muting]'.yellow;
     };
+
     // ツイート数
     const tweetCount = `${user.statuses_count} tweets`;
 
@@ -365,7 +381,9 @@ function showUserInfo(user, connections){
  * @param {Array} tweets ツイートオブジェクト
  */
 function showTweet(tweets){
+    // 画面幅
     const width = process.stdout.columns;
+
     // 水平線
     const hr = '-'.repeat(width);
     console.log(hr);
@@ -379,6 +397,7 @@ function showTweet(tweets){
             rtByUser = `RT by ${util.optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;
             tweet = tweet.retweeted_status;
         };
+
         // 表示内容を作成
         const index = ` ${i}:`.brightWhite.bgBrightBlue;
         const header = index + ' ' + createHeader(tweet.user);
@@ -389,11 +408,13 @@ function showTweet(tweets){
         if (rtByUser){
             console.log(rtByUser.green);
         };
+
         // リプライの表示
         let rpToUser = tweet.in_reply_to_screen_name;
         if (rpToUser){
             console.log(`Reply to @${rpToUser}`.brightGreen);
         };
+
         // ツイートを表示
         console.log(header + '\n');
         console.log(postText);
@@ -412,14 +433,17 @@ function createHeader(user){
     const userName = util.optimizeText(user.name);
     const userId = `  @${user.screen_name}`;
     let badge = '';
+
     // 公式アカウント
     if (user.verified){
         badge += ' [verified]'.cyan;
     };
+
     // 鍵アカウント
     if (user.protected){
         badge += ' [private]'.gray;
     };
+
     // 連結
     const header = userName.bold.underline + userId.dim + badge;
     return header;
@@ -435,12 +459,14 @@ function createTweet(tweet){
     const post = tweet.text;
     let result = '';
     let posts = post.split('\n');
+
     // 一行に収まらない場合、折り返す
     for (text of posts){
         text = util.optimizeText(text);
         text = '  ' + util.insert(text, (width - 4), '\n  ');
         result += text + '\n';
     };
+
     // メンションをハイライト (途中で改行されると無力)
     let mentions = tweet.entities.user_mentions;
     if (mentions){
@@ -450,6 +476,7 @@ function createTweet(tweet){
             result = result.replace(`@${text}`, '@'.brightGreen + text.brightGreen);
         };
     };
+
     // ハッシュタグをハイライト (途中で改行されると無力)
     let hashtags = tweet.entities.hashtags;
     if (hashtags){
@@ -470,6 +497,7 @@ function createTweet(tweet){
 function createFotter(tweet){
     const width = process.stdout.columns;
     let textCount = 0;
+
     // いいね
     const favCount = tweet.favorite_count;
     let favText = '';
@@ -478,6 +506,7 @@ function createFotter(tweet){
         textCount += favText.length + 1;
         favText = (tweet.favorited) ? `${favText.black.bgBrightMagenta} ` : `${favText.brightMagenta} `;
     };
+
     // RT
     const rtCount = tweet.retweet_count;
     let rtText = '';
@@ -486,8 +515,10 @@ function createFotter(tweet){
         textCount += rtText.length + 2;
         rtText = (tweet.retweeted) ? ` ${rtText.black.bgBrightGreen} ` : ` ${rtText.brightGreen} `;
     };
+
     // いいねとRT情報
     const impression = (textCount) ? ' '.repeat(width - textCount) + `${favText}${rtText}\n` : '';
+
     // via
     const start = tweet.source.indexOf('>') + 1;
     const end = tweet.source.indexOf('</a>');

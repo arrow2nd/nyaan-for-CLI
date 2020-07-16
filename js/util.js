@@ -3,6 +3,7 @@ const readline = require('readline');
 const colors = require('colors');
 const emoji = require('node-emoji');
 
+
 /**
  * コンソールからの入力を受け付ける
  * @return {Array} 文字列配列
@@ -132,6 +133,7 @@ function showAPIErrorMsg(error){
         187: 'ツイートが重複しています',
         327: '既にリツイートしたツイートです'
     };
+
     // オブジェクトが無い場合
     if (!error[0]){
         console.log('Error:'.bgRed + ' エラー内容が取得できませんでした'.brightRed);
@@ -162,15 +164,14 @@ function showCMDErrorMsg(error){
     if (error.exitCode == 0){
         return;
     };
+    
     for (let code of ignore){
         if (code == error.code){
             return;
         };
     };
 
-    // エラーを表示
     console.log(error);
-    // プロセスを終了
     process.exit(1);
 };
 

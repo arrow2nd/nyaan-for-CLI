@@ -16,8 +16,9 @@ program.exitOverride();
 // バージョン
 program.version(packageJson.version, '-v, --version');
 
-// 名前と大体の使い方
+// 名前とおおまかな使い方
 program.name('nyaan').usage('command [オプション]');
+
 
 
 /**
@@ -31,8 +32,9 @@ program
         console.clear();
     });
 
+
 /**
- * ツイートする 
+ * ツイート
  */
 program
     .command('tweet [text]')
@@ -52,8 +54,9 @@ program
         console.log('  ・テキストを省略すると、「にゃーん」に変換されます'.brightMagenta);
     });
 
+
 /**
- * リプライする
+ * リプライ
  */
 program
     .command('reply <index> [text]')
@@ -77,8 +80,9 @@ program
         console.log('  ・テキストを省略すると、「にゃーん」に変換されます'.brightMagenta);
     });
 
+
 /**
- * ツイートを削除する
+ * ツイートを削除
  */
 program
     .command('deltweet <index>')
@@ -93,8 +97,9 @@ program
         };
     });
 
+
 /**
- * タイムラインを見る
+ * タイムライン
  */
 program
     .command('timeline [counts]')
@@ -111,8 +116,9 @@ program
         console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
+
 /**
- * ユーザーのタイムラインを見る
+ * ユーザーのタイムライン
  */
 program
     .command('usertimeline [userId] [counts]')
@@ -135,8 +141,9 @@ program
         console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
+
 /**
- * キーワードからツイートを検索する
+ * キーワードからツイート検索
  */
 program
     .command('search <keyword> [counts]')
@@ -153,8 +160,9 @@ program
         console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
+
 /**
- * いいねする/取り消す
+ * いいね
  */
 program
     .command('favorite <index>')
@@ -173,8 +181,9 @@ program
         delete options.remove;
     });
 
+
 /**
- * リツイートする/取り消す
+ * リツイート
  */
 program
     .command('retweet <index>')
@@ -193,8 +202,9 @@ program
         delete options.remove;
     });
 
+
 /**
- * いいねとリツイートを同時にする
+ * いいねとリツイート
  */
 program
     .command('fav&rt <index>')
@@ -212,8 +222,9 @@ program
         };
     });
 
+
 /**
- * フォローする/取り消す
+ * フォロー
  */
 program
     .command('follow [userId]')
@@ -240,8 +251,9 @@ program
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます'.brightMagenta);
     });
 
+
 /**
- * ブロックする/解除する
+ * ブロック
  */
 program
     .command('block [userId]')
@@ -268,8 +280,9 @@ program
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます'.brightMagenta);
     });
 
+
 /**
- * ミュートする/解除する
+ * ミュート
  */
 program
     .command('mute [userId]')
@@ -298,7 +311,7 @@ program
 
 
 /**
- * nyaanを終了する
+ * 終了
  */
 program
     .command('exit')
