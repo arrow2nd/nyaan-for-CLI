@@ -2,7 +2,7 @@
 
 ねこによるねこのためのシンプルなTwitterクライアントです。
 
-![nyaan-github](https://user-images.githubusercontent.com/44780846/85189449-36d15000-b2ea-11ea-8e99-772aefad5df0.gif)
+![cat](https://user-images.githubusercontent.com/44780846/87781211-3ab1ad00-c86b-11ea-8d7e-f0cfaca317e0.gif)
 
 ## これが欲しかった…！
 
