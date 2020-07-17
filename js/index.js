@@ -112,6 +112,7 @@ program
         tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
         console.log('\nTips:');
+        console.log('  ・countsは最大200件まで指定できます'.brightMagenta);
         console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
@@ -131,6 +132,7 @@ program
         tweetsData = (timeline) ? timeline : tweetsData;
     }).on('--help', () => {
         console.log('\nTips:');
+        console.log('  ・countsは最大200件まで指定できます'.brightMagenta);
         console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
@@ -156,6 +158,7 @@ program
         console.log('\nTips:');
         console.log('  ・userIdにはツイートのインデックスを指定することも可能です'.brightMagenta);
         console.log('  ・指定したツイートがRTの場合、RT元のユーザーが指定されます'.brightMagenta);
+        console.log('  ・countsは最大200件まで指定できます'.brightMagenta);
         console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
@@ -175,6 +178,7 @@ program
         tweetsData = (tweets) ? tweets.statuses : tweetsData;
     }).on('--help', () => {
         console.log('\nTips:');
+        console.log('  ・countsは最大100件まで指定できます'.brightMagenta);
         console.log('  ・countsを省略すると、20件を指定したことになります'.brightMagenta);
     });
 
