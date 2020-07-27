@@ -18,7 +18,12 @@
 - 自分宛てのメンションの閲覧
 - キーワードからツイート検索
 
-## インストール手順（自分へのメモ）
+## できないこと
+- DM全般
+- 画像の表示
+- リストの表示、閲覧
+
+## インストール手順（自分用）
 
 ### 動作環境
 - 文字コードがUTF-8
@@ -26,11 +31,11 @@
 
 ### 1.ダウンロードする
 
-zipをダウンロード or ```git clone git@github.com:arrow2nd/nyaan-for-CLI.git```
+zipをダウンロード or ```git clone git@github.com:arrow2nd/tw-nyaan.git```
 
 ### 2.移動する
 
-```cd nyaan-for-CLI```
+```cd tw-nyaan```
 
 ### 3.アクセストークンの設定
 
