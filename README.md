@@ -1,4 +1,4 @@
-# nyaan-for-CLI
+# tw-nyaan
 
 ねこによるねこのためのシンプルなTwitterクライアントです。
 
