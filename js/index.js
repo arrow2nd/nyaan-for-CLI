@@ -168,7 +168,7 @@ program
  */
 program
     .command('search <keyword> [counts]')
-    .alias('sch')
+    .alias('sh')
     .description('キーワードからツイートを検索します')
     .action(async (keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 100) ? 20 : counts;
@@ -188,7 +188,7 @@ program
  */
 program
     .command('favorite <index>')
-    .alias('fav')
+    .alias('fv')
     .description('いいね！します')
     .option('-d, --delete', 'いいねを取り消します')
     .action(async (index, options) => {
@@ -229,8 +229,8 @@ program
  * いいねとリツイート
  */
 program
-    .command('fav&rt <index>')
-    .alias('favrt')
+    .command('favrt <index>')
+    .alias('frt')
     .description('いいねとリツイートします')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
