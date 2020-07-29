@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 'use strict';
-const packageJson = require("../package.json");
 const program = require('commander');
 const colors = require('colors');
+const packageJson = require("../package.json");
 const tweet = require('./tweet.js');
 const util = require('./util.js');
 
@@ -41,11 +41,15 @@ program
     .description('ツイートします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .action(async (text, options) => {
+        // パスがあるか確認
         const path = options.media || '';
-        text = (!text) ? 'にゃーん' : text;
+        // テキストがない場合、にゃーんする
+        text = (!text && !path) ? 'にゃーん' : text;
+        // 投稿
         await tweet.tweetPost(text, path, '').catch(err => {
             console.error(err);
         });
+        // オブジェクトを削除
         delete options.media;
         delete options.nyaan;
     }).on('--help', () => {
@@ -67,11 +71,12 @@ program
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId) {
             const path = options.media || '';
-            text = (!text) ? 'にゃーん' : text;
+            text = (!text && !path) ? 'にゃーん' : text;
             await tweet.tweetPost(text, path, tweetId).catch(err => {
                 console.error(err);
             });
         };
+        // オブジェクトを削除
         delete options.media;
         delete options.nyaan;
     }).on('--help', () => {
@@ -98,7 +103,7 @@ program
 
 
 /**
- * タイムライン
+ * タイムライン表示
  */
 program
     .command('timeline [counts]')
@@ -118,7 +123,7 @@ program
 
 
 /**
- * メンション
+ * メンション一覧表示
  */
 program
     .command('mentionTL [counts]')
@@ -138,7 +143,7 @@ program
 
 
 /**
- * ユーザーのタイムライン
+ * ユーザーのタイムライン表示
  */
 program
     .command('userTL [userId] [counts]')
@@ -184,12 +189,12 @@ program
 
 
 /**
- * いいね
+ * いいねの操作
  */
 program
     .command('favorite <index>')
     .alias('fv')
-    .description('いいね！します')
+    .description('いいね！の操作をします')
     .option('-d, --delete', 'いいねを取り消します')
     .action(async (index, options) => {
         // 0: 取り消し 1: いいね
@@ -205,12 +210,12 @@ program
 
 
 /**
- * リツイート
+ * リツイートの操作
  */
 program
     .command('retweet <index>')
     .alias('rt')
-    .description('リツイートします')
+    .description('リツイートの操作をします')
     .option('-d, --delete', 'リツイートを取り消します')
     .action(async (index, options) => {
         // 0: 取り消す 1: リツイート
@@ -226,12 +231,12 @@ program
 
 
 /**
- * いいねとリツイート
+ * いいね＆リツイート
  */
 program
     .command('favrt <index>')
     .alias('frt')
-    .description('いいねとリツイートします')
+    .description('いいねとリツイートをします')
     .action(async (index) => {
         const tweetId = tweet.getTweetId(tweetsData, index);
         if (tweetId) {
@@ -246,12 +251,12 @@ program
 
 
 /**
- * フォロー
+ * フォローの操作
  */
 program
     .command('follow [userId]')
     .alias('fw')
-    .description('ユーザーをフォローします')
+    .description('フォローの操作をします')
     .option('-d, --delete', 'フォローを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
@@ -275,12 +280,12 @@ program
 
 
 /**
- * ブロック
+ * ブロックの操作
  */
 program
     .command('block [userId]')
     .alias('bk')
-    .description('ユーザーをブロックします')
+    .description('ブロックの操作をします')
     .option('-d, --delete', 'ブロックを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
@@ -304,12 +309,12 @@ program
 
 
 /**
- * ミュート
+ * ミュートの操作
  */
 program
     .command('mute [userId]')
     .alias('mt')
-    .description('ユーザーをミュートします')
+    .description('ミュートの操作をします')
     .option('-d, --delete', 'ミュートを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
