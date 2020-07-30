@@ -49,6 +49,8 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId) {
     const tweet = await client.post('statuses/update', status).catch(err => {
         util.showAPIErrorMsg(err);
     });
+
+    // 完了メッセージ
     if (tweet) {
         console.log(action.bgBlue + ` ${tweet.text}`);
     };
@@ -244,10 +246,14 @@ async function getTimeline(mode, count) {
         util.showAPIErrorMsg(err);
     });
 
-    // 表示
-    if (tweets) {
-        tw.showTweet(tweets);
+    // データが無い場合
+    if (!tweets.length) {
+        console.log('Error:'.bgRed + ' データがありません');
+        return [];
     };
+
+    // 表示
+    tw.showTweet(tweets);
 
     return tweets;
 };
@@ -272,15 +278,18 @@ async function getUserTimeline(userId, count) {
         util.showAPIErrorMsg(err);
     });
 
-    // 表示
-    if (tweets) {
-        // 対象ユーザーと自分との関係を取得
-        const connections = await getUserLookup(tweets[0].user.id_str).catch(err => {console.error(err)});
-        // ツイートを表示
-        tw.showTweet(tweets);
-        // プロフィールを表示
-        tw.showUserInfo(tweets[0].user, connections);
+    // データが無い場合
+    if (!tweets.length) {
+        console.log('Info:'.bgRed + ' ユーザーがみつかりませんでした...');
+        return [];
     };
+
+    // 対象ユーザーと自分との関係を取得
+    const connections = await getUserLookup(tweets[0].user.id_str).catch(err => console.error(err));
+    // ツイートを表示
+    tw.showTweet(tweets);
+    // プロフィールを表示
+    tw.showUserInfo(tweets[0].user, connections);
 
     return tweets;
 };
@@ -322,10 +331,14 @@ async function searchTweet(query, count) {
         util.showAPIErrorMsg(err);
     });
 
-    // 表示
-    if (tweets) {
-        tw.showTweet(tweets.statuses);
+    // データが無い場合
+    if (!tweets.length) {
+        console.log('Info:'.bgRed + ' みつかりませんでした...');
+        return [];
     };
+
+    // 表示
+    tw.showTweet(tweets.statuses);
 
     return tweets;
 };
