@@ -15,6 +15,7 @@ function readlineSync() {
             input: process.stdin,
             output: process.stdout
         });
+
         // 入力受付
         rl.question('>'.brightWhite + '>'.brightCyan + '> '.cyan, (input) => {
             rl.close();
@@ -70,8 +71,10 @@ function insert(text, length, add) {
         result += add;                            // 指定の文字を追加
         rest = text.slice(start);                 // 残り
     };
+
     // 残りの文字列を結合
     result += rest;
+
     return result;
 };
 
@@ -97,10 +100,11 @@ function strCat(text, start, length, mode) {
         result += value;
     };
 
-    // 文末に…を追加
+    // 文末に"…"を追加
     if (mode && text.length != index) {
         result += '…';
     };
+
     return result;
 };
 
@@ -110,8 +114,8 @@ function strCat(text, start, length, mode) {
  * @return {String}      編集後の文字列
  */
 function optimizeText(text) {
-    text = text.replace(/　/g, ' ');                        // 全角スペース
-    text = text.replace(/\n/g, ' ');                        // 改行コード
+    text = text.replace(/　/g, ' '); // 全角スペースを置換
+    text = text.replace(/\n/g, ' '); // 改行コードを置換
     return text;
 }
 
@@ -147,9 +151,12 @@ function showAPIErrorMsg(error) {
     // エラーを表示
     const code = error[0].code;
     let msg = err[code];
+    
+    // msgが無い場合、エラーオブジェクトから持ってくる
     if (!msg) {
         msg = error[0].message;
     };
+
     console.log('Error:'.bgRed + ` ${msg}(${code})`.brightRed);
 };
 
@@ -178,6 +185,7 @@ function showCMDErrorMsg(error) {
     console.log(error);
     process.exit(1);
 };
+
 
 module.exports = {
     readlineSync,
