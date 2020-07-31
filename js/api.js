@@ -376,7 +376,7 @@ function getTweetId(tl, index) {
  * @param  {Boolean} isGetRtUser RTだった場合、RT元のユーザーを取得する
  * @return {String}              スクリーンネーム
  */
-function getUserId(tl, index, mode) {
+function getUserId(tl, index, isGetRtUser) {
     // 数値か検証
     if (isNaN(index)) {
         console.error('Error:'.bgRed + ' インデックスが不正です'.brightRed);
