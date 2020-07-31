@@ -86,6 +86,7 @@ program
 program
     .command('tweet [text]')
     .alias('tw')
+    .usage('[テキスト]')
     .description('ツイートします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .action(async (text, options) => tweet('', text, options))
@@ -98,6 +99,7 @@ program
 program
     .command('reply <index> [text]')
     .alias('rp')
+    .usage('<ツイートの番号> [テキスト]')
     .description('リプライします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .action(async (index, text, options) => {
@@ -115,6 +117,7 @@ program
 program
     .command('deltweet <index>')
     .alias('dtw')
+    .usage('<ツイートの番号>')
     .description('ツイートを削除します')
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
@@ -127,6 +130,7 @@ program
 program
     .command('timeline [counts]')
     .alias('tl')
+    .usage('[取得件数]')
     .description('タイムラインを表示します')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
@@ -135,14 +139,15 @@ program
     })
     .on('--help', () => {
         console.log('\nTips:');
-        console.log('  ・countsは最大200件まで指定できます');
-        console.log('  ・countsを省略すると、20件を指定したことになります');
+        console.log('  ・最大200件まで取得できます');
+        console.log('  ・取得件数を省略すると、20件取得します');
     });
 
 // メンション一覧表示
 program
     .command('mentionTL [counts]')
     .alias('mtl')
+    .usage('[取得件数]')
     .description('自分宛てのメンションを表示します')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
@@ -151,14 +156,15 @@ program
     })
     .on('--help', () => {
         console.log('\nTips:');
-        console.log('  ・countsは最大200件まで指定できます');
-        console.log('  ・countsを省略すると、20件を指定したことになります');
+        console.log('  ・最大200件まで取得できます');
+        console.log('  ・取得件数を省略すると、20件取得します');
     });
 
 // ユーザータイムライン表示
 program
     .command('userTL [userId] [counts]')
     .alias('utl')
+    .usage('[ユーザーID / ツイートの番号] [取得件数]')
     .description('ユーザーのタイムラインを表示します')
     .action(async (userId, counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
@@ -168,16 +174,17 @@ program
     })
     .on('--help', () => {
         console.log('\nTips:');
-        console.log('  ・userIdにはツイートのインデックスを指定することも可能です');
+        console.log('  ・ユーザーIDを省略した場合、 自分のツイートが表示されます');
         console.log('  ・指定したツイートがRTの場合、RT元のユーザーが指定されます');
-        console.log('  ・countsは最大200件まで指定できます');
-        console.log('  ・countsを省略すると、20件を指定したことになります');
+        console.log('  ・最大200件まで取得できます');
+        console.log('  ・取得件数を省略すると、20件取得します');
     });
 
 // ツイート検索
 program
     .command('search <keyword> [counts]')
     .alias('sh')
+    .usage('<検索ワード> [取得件数]')
     .description('キーワードからツイートを検索します')
     .action(async (keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 100) ? 20 : counts;
@@ -186,14 +193,15 @@ program
     })
     .on('--help', () => {
         console.log('\nTips:');
-        console.log('  ・countsは最大100件まで指定できます');
-        console.log('  ・countsを省略すると、20件を指定したことになります');
+        console.log('  ・最大100件まで取得できます');
+        console.log('  ・取得件数を省略すると、20件取得します');
     });
 
 // いいねの操作
 program
     .command('favorite <index>')
     .alias('fv')
+    .usage('<ツイートの番号>')
     .description('いいね！の操作をします')
     .option('-r, --remove', 'いいねを取り消します')
     .action(async (index, options) => {
@@ -209,6 +217,7 @@ program
 program
     .command('retweet <index>')
     .alias('rt')
+    .usage('<ツイートの番号>')
     .description('リツイートの操作をします')
     .option('-r, --remove', 'リツイートを取り消します')
     .action(async (index, options) => {
@@ -224,6 +233,7 @@ program
 program
     .command('favrt <index>')
     .alias('frt')
+    .usage('<ツイートの番号>')
     .description('いいねとリツイートをします')
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
@@ -237,6 +247,7 @@ program
 program
     .command('follow [userId]')
     .alias('fw')
+    .usage('[ユーザーID / ツイートの番号]')
     .description('フォローの操作をします')
     .option('-r, --remove', 'フォローを解除します')
     .action(async (userId, options) => {
@@ -249,7 +260,7 @@ program
     })
     .on('--help', () => {
         console.log('\nTips:');
-        console.log('  ・userIdにはツイートのインデックスを指定することも可能です');
+        console.log('  ・ユーザーIDを省略した場合、 0番のツイートが指定されます');
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます');
     });
 
@@ -257,6 +268,7 @@ program
 program
     .command('block [userId]')
     .alias('bk')
+    .usage('[ユーザーID / ツイートの番号]')
     .description('ブロックの操作をします')
     .option('-r, --remove', 'ブロックを解除します')
     .action(async (userId, options) => {
@@ -269,7 +281,7 @@ program
     })
     .on('--help', () => {
         console.log('\nTips:');
-        console.log('  ・userIdにはツイートのインデックスを指定することも可能です');
+        console.log('  ・ユーザーIDを省略した場合、 0番のツイートが指定されます');
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます');
     });
 
@@ -277,6 +289,7 @@ program
 program
     .command('mute [userId]')
     .alias('mt')
+    .usage('[ユーザーID / ツイートの番号]')
     .description('ミュートの操作をします')
     .option('-r, --remove', 'ミュートを解除します')
     .action(async (userId, options) => {
@@ -289,7 +302,7 @@ program
     })
     .on('--help', () => {
         console.log('\nTips:');
-        console.log('  ・userIdにはツイートのインデックスを指定することも可能です');
+        console.log('  ・ユーザーIDを省略した場合、 0番のツイートが指定されます');
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます');
     });
 
