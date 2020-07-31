@@ -175,6 +175,7 @@ function formatTweet(tweet) {
             result = result.replace(`#${text}`, '#'.brightCyan + text.brightCyan);
         };
     };
+    
     return result;
 };
 

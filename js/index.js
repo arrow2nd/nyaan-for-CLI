@@ -39,9 +39,7 @@ program
         // テキストがない場合、にゃーんする
         text = (!text && !path) ? 'にゃーん' : text;
         // 投稿
-        await api.tweetPost(text, path, '').catch(err => {
-            console.error(err);
-        });
+        await api.tweetPost(text, path, '').catch(err => console.error(err));
         // オブジェクトを削除
         delete options.media;
         delete options.nyaan;
@@ -64,9 +62,7 @@ program
         if (tweetId) {
             const path = options.media || '';
             text = (!text && !path) ? 'にゃーん' : text;
-            await api.tweetPost(text, path, tweetId).catch(err => {
-                console.error(err);
-            });
+            await api.tweetPost(text, path, tweetId).catch(err => console.error(err));
         };
         // オブジェクトを削除
         delete options.media;
@@ -85,9 +81,7 @@ program
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
-            await api.deleteTweet(tweetId).catch(err => {
-                console.error(err);
-            });
+            await api.deleteTweet(tweetId).catch(err => console.error(err));
         };
     });
 
@@ -98,9 +92,7 @@ program
     .description('タイムラインを表示します')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await api.getTimeline(0, counts).catch(err => {
-            console.error(err);
-        });
+        const timeline = await api.getTimeline(0, counts).catch(err => console.error(err));
         displayingTweets = (timeline) ? timeline : displayingTweets;
     })
     .on('--help', () => {
@@ -116,9 +108,7 @@ program
     .description('自分宛てのメンションを表示します')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await api.getTimeline(1, counts).catch(err => {
-            console.error(err);
-        });
+        const timeline = await api.getTimeline(1, counts).catch(err => console.error(err));
         displayingTweets = (timeline) ? timeline : displayingTweets;
     })
     .on('--help', () => {
@@ -138,9 +128,7 @@ program
             userId = api.getUserId(displayingTweets, Number(userId), 1);
         };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await api.getUserTimeline(userId, counts).catch(err => {
-            console.error(err);
-        });
+        const timeline = await api.getUserTimeline(userId, counts).catch(err => console.error(err));
         displayingTweets = (timeline) ? timeline : displayingTweets;
     })
     .on('--help', () => {
@@ -158,9 +146,7 @@ program
     .description('キーワードからツイートを検索します')
     .action(async (keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 100) ? 20 : counts;
-        const tweets = await api.searchTweet(keyword, counts).catch(err => {
-            console.error(err);
-        });
+        const tweets = await api.searchTweet(keyword, counts).catch(err => console.error(err));
         displayingTweets = (tweets) ? tweets.statuses : displayingTweets;
     })
     .on('--help', () => {
@@ -179,9 +165,7 @@ program
         const isRemoved = (options.remove) ? 1 : 0;
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
-            await api.favorite(tweetId, isRemoved).catch(err => {
-                console.error(err);
-            });
+            await api.favorite(tweetId, isRemoved).catch(err => console.error(err));
         };
         delete options.remove;
     });
@@ -196,9 +180,7 @@ program
         const isRemoved = (options.remove) ? 1 : 0;
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
-            await api.retweet(tweetId, isRemoved).catch(err => {
-                console.error(err);
-            });
+            await api.retweet(tweetId, isRemoved).catch(err => console.error(err));
         };
         delete options.remove;
     });
@@ -211,12 +193,8 @@ program
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
-            await api.favorite(tweetId, 0).catch(err => {
-                console.error(err);
-            });
-            await api.retweet(tweetId, 0).catch(err => {
-                console.error(err);
-            });
+            await api.favorite(tweetId, 0).catch(err => console.error(err));
+            await api.retweet(tweetId, 0).catch(err => console.error(err));
         };
     });
 
@@ -235,9 +213,7 @@ program
             userId = api.getUserId(displayingTweets, Number(userId), 0);
         };
         if (userId) {
-            await api.follow(userId, mode).catch(err => {
-                console.error(err);
-            });
+            await api.follow(userId, mode).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -262,9 +238,7 @@ program
             userId = api.getUserId(displayingTweets, Number(userId), 0);
         };
         if (userId) {
-            await api.block(userId, mode).catch(err => {
-                console.error(err);
-            });
+            await api.block(userId, mode).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -289,9 +263,7 @@ program
             userId = api.getUserId(displayingTweets, Number(userId), 0);
         };
         if (userId) {
-            await api.mute(userId, mode).catch(err => {
-                console.error(err);
-            });
+            await api.mute(userId, mode).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -328,15 +300,21 @@ if (process.argv[2]) {
  * 対話型モード（無理矢理）
  */
 async function interactive() {
+    let array = '';
+    
     // タイムライン表示
     displayingTweets = await api.getTimeline(0, 20).catch(err => console.error(err));
-    let array = '';
+    
     while (1) {
-        array = await util.readlineSync().catch(err => { console.error(err) });
+        // 入力を待つ
+        array = await util.readlineSync().catch(err => console.error(err))
+        ;
+
         // 空エンターでTL更新
         if (!array[0]) {
             array[0] = 'tl';
         };
+
         // コマンドを解析
         try {
             await program.parseAsync(array, { from: 'user' });

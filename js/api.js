@@ -28,24 +28,24 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId) {
     let status = {};
     let action = 'Tweeted:';
 
-    // テキストを追加
+    // ツイート内容を追加
     status.status = tweetText;
     
-    // リプライ
+    // リプライの設定
     if (replyToPostId) {
         action = 'Replied:';
         status.in_reply_to_status_id = replyToPostId;
         status.auto_populate_reply_metadata = true;
     };
 
-    // 画像があればアップロードする
+    // 画像があればアップロード
     if (mediaPaths) {
         status.media_ids = await upload(mediaPaths).catch(err => {
             util.showAPIErrorMsg(err);
         });
     };
 
-    // ツイートする
+    // ツイート
     const tweet = await client.post('statuses/update', status).catch(err => {
         util.showAPIErrorMsg(err);
     });
@@ -70,7 +70,7 @@ async function upload(mediaPaths) {
     for (let i = 0; i < pathLength; i++) {
         const filePath = paths[i].trim();
 
-        // 画像があるか確認
+        // 画像があるか検証
         try {
             fs.statSync(filePath);
         } catch(err) {
@@ -78,11 +78,10 @@ async function upload(mediaPaths) {
             continue;
         };
 
-        // 拡張子を確認
+        // 拡張子を検証
         const ext = path.extname(filePath).toLowerCase();
         if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif') {
             const file = fs.readFileSync(filePath);
-
             // アップロード
             let media;
             try {
@@ -91,14 +90,16 @@ async function upload(mediaPaths) {
                 console.error('Error:'.bgRed + `アップロードに失敗しました (${filePath})`.brightRed);
                 continue;
             };
-
+            // メディアIDを保存
             mediaIds += media.media_id_string + ',';
+            // 完了メッセージ
             console.log('Success:'.bgGreen + ` アップロードしました！(${filePath})`.brightGreen);
         } else {
             console.error('Error:'.bgRed + ` 未対応の拡張子です (${ext})`.brightRed);
             continue;
         };
     };
+
     return mediaIds;
 };
 
@@ -165,12 +166,12 @@ async function retweet(tweetId, isRemoved) {
 
 /**
  * フォローの操作
- * @param {String}  userId    ユーザーのスクリーンネーム
- * @param {Boolean} isRemoved フォローを解除するかどうか
+ * @param {String}  screenName ユーザーのスクリーンネーム
+ * @param {Boolean} isRemoved  フォローを解除するかどうか
  */
-async function follow(userId, isRemoved) {
+async function follow(screenName, isRemoved) {
     const type = ['create', 'destroy'];
-    const user = await client.post(`friendships/${type[isRemoved]}`, {screen_name: userId}).catch(err => {
+    const user = await client.post(`friendships/${type[isRemoved]}`, {screen_name: screenName}).catch(err => {
         util.showAPIErrorMsg(err);
     });
 
@@ -186,12 +187,12 @@ async function follow(userId, isRemoved) {
 
 /**
  * ブロックの操作
- * @param {String}  userId    ユーザーのスクリーンネーム
- * @param {Boolean} isRemoved 解除するかどうか
+ * @param {String}  screenName ユーザーのスクリーンネーム
+ * @param {Boolean} isRemoved  解除するかどうか
  */
-async function block(userId, isRemoved) {
+async function block(screenName, isRemoved) {
     const type = ['create', 'destroy'];
-    const user = await client.post(`blocks/${type[isRemoved]}`, {screen_name: userId}).catch(err => {
+    const user = await client.post(`blocks/${type[isRemoved]}`, {screen_name: screenName}).catch(err => {
         util.showAPIErrorMsg(err);
     });
 
@@ -207,12 +208,12 @@ async function block(userId, isRemoved) {
 
 /**
  * ミュートの操作
- * @param {String}  userId    ユーザーのスクリーンネーム
- * @param {Boolean} isRemoved 解除するかどうか
+ * @param {String}  screenName ユーザーのスクリーンネーム
+ * @param {Boolean} isRemoved  解除するかどうか
  */
-async function mute(userId, isRemoved) {
+async function mute(screenName, isRemoved) {
     const type = ['create', 'destroy'];
-    const user = await client.post(`mutes/users/${type[isRemoved]}`, {screen_name: userId}).catch(err => {
+    const user = await client.post(`mutes/users/${type[isRemoved]}`, {screen_name: screenName}).catch(err => {
         util.showAPIErrorMsg(err);
     });
 
@@ -228,31 +229,31 @@ async function mute(userId, isRemoved) {
 
 /**
  * タイムラインを取得して表示
- * @param  {Boolean} mode  メンション取得モード
- * @param  {Number}  count 取得件数（最大200件）
- * @return {Array}         取得したツイート
+ * @param  {Boolean} mentionMode メンション取得モード
+ * @param  {Number}  count       取得件数（最大200件）
+ * @return {Array}               取得したツイート
  */
-async function getTimeline(mode, count) {
+async function getTimeline(mentionMode, count) {
     const type = ['home_timeline', 'mentions_timeline'];
     let param = { count: count };
 
-    // TL取得モード(mode:0)の場合は、リプライを含めない
-    if (mode == 0) {
+    // TL取得モードの場合は、リプライを含めない
+    if (mentionMode == 0) {
         param.exclude_replies = true;
     };
 
     // 取得
-    const tweets = await client.get(`statuses/${type[mode]}`, param).catch(err => {
+    const tweets = await client.get(`statuses/${type[mentionMode]}`, param).catch(err => {
         util.showAPIErrorMsg(err);
     });
 
-    // データが無い場合
+    // データがあるか検証
     if (!tweets.length) {
         console.log('Error:'.bgRed + ' データがありません');
         return [];
     };
 
-    // 表示
+    // タイムラインを表示
     tw.showTweet(tweets);
 
     return tweets;
@@ -278,7 +279,7 @@ async function getUserTimeline(userId, count) {
         util.showAPIErrorMsg(err);
     });
 
-    // データが無い場合
+    // データがあるか検証
     if (!tweets.length) {
         console.log('Info:'.bgRed + ' ユーザーがみつかりませんでした...');
         return [];
@@ -286,6 +287,7 @@ async function getUserTimeline(userId, count) {
 
     // 対象ユーザーと自分との関係を取得
     const connections = await getUserLookup(tweets[0].user.id_str).catch(err => console.error(err));
+
     // ツイートを表示
     tw.showTweet(tweets);
     // プロフィールを表示
@@ -331,13 +333,13 @@ async function searchTweet(query, count) {
         util.showAPIErrorMsg(err);
     });
 
-    // データが無い場合
+    // データがあるか検証
     if (!tweets.length) {
         console.log('Info:'.bgRed + ' みつかりませんでした...');
         return [];
     };
 
-    // 表示
+    // 検索結果を表示
     tw.showTweet(tweets.statuses);
 
     return tweets;
@@ -351,11 +353,13 @@ async function searchTweet(query, count) {
  * @return {String}       ツイートID
  */
 function getTweetId(tl, index) {
-    // エラーチェック
-    if (isNaN(index)) {
+    // 数値か検証
+    if (!index || isNaN(index)) {
         console.error('Error:'.bgRed + ' インデックスが不正です'.brightRed);
         return '';
     };
+
+    // インデックスが存在するか検証
     if (index > tl.length - 1) {
         console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
@@ -367,24 +371,29 @@ function getTweetId(tl, index) {
 
 /**
  * ツイートのインデックスからユーザーのスクリーンネームを取得する
- * @param  {Array}   tl    タイムライン
- * @param  {Number}  index ツイートのインデックス
- * @param  {Boolean} mode  RTだった場合、RT元のユーザーを取得する
- * @return {String}        スクリーンネーム
+ * @param  {Array}   tl          タイムライン
+ * @param  {Number}  index       ツイートのインデックス
+ * @param  {Boolean} isGetRtUser RTだった場合、RT元のユーザーを取得する
+ * @return {String}              スクリーンネーム
  */
 function getUserId(tl, index, mode) {
-    // エラーチェック
+    // 数値か検証
     if (isNaN(index)) {
         console.error('Error:'.bgRed + ' インデックスが不正です'.brightRed);
         return '';
     };
+
+    // インデックスが存在するか検証
     if (index > tl.length - 1) {
         console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
     };
 
+    // 対象のツイートを取得
+    const tweet = tl[index];
+
     // RTの場合はRT元のスクリーンネームを返す
-    return (mode ==1 && tl[index].retweeted_status) ? tl[index].retweeted_status.user.screen_name : tl[index].user.screen_name;
+    return (isGetRtUser ==1 && tweet.retweeted_status) ? tweet.retweeted_status.user.screen_name : tweet.user.screen_name;
 };
 
 
