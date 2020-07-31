@@ -193,6 +193,7 @@ program
     })
     .on('--help', () => {
         console.log('\nTips:');
+        console.log('  ・AND検索する際は、全角スペースで区切って下さい');
         console.log('  ・最大100件まで取得できます');
         console.log('  ・取得件数を省略すると、20件取得します');
     });

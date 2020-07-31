@@ -318,9 +318,12 @@ async function getUserLookup(userId) {
  */
 async function searchTweet(query, count) {
     // 検索
-    const tweets = await client.get('search/tweets', {q: `${query}  exclude:retweets`, count: count}).catch(err => {
+    const results = await client.get('search/tweets', {q: `${query}  exclude:retweets`, count: count}).catch(err => {
         util.showAPIErrorMsg(err);
     });
+
+    // ヒットしたツイート
+    const tweets = results.statuses;
 
     // データがあるか検証
     if (!tweets.length) {
@@ -329,7 +332,8 @@ async function searchTweet(query, count) {
     };
 
     // 検索結果を表示
-    tw.showTweet(tweets.statuses);
+    tw.showTweet(tweets);
+    console.log('Info:'.bgCyan + `「${query}」の検索結果はこちらです`);
 
     return tweets;
 };
