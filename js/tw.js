@@ -61,7 +61,6 @@ function showUserInfo(user, connections) {
     console.log(`${'='.repeat(width)}`.rainbow);
 };
 
-
 /**
  * ツイートを表示
  * @param {Array} tweets ツイートオブジェクト
@@ -110,7 +109,6 @@ function showTweet(tweets) {
     };
 };
 
-
 /**
  * ヘッダーを作成
  * @param  {Object} tweet ユーザーオブジェクト
@@ -136,7 +134,6 @@ function createHeader(user) {
     const header = userName.bold + userId.dim + badge;
     return header;
 };
-
 
 /**
  * ツイート内容を整形する
@@ -178,7 +175,6 @@ function formatTweet(tweet) {
     
     return result;
 };
-
 
 /**
  * フッターを作成

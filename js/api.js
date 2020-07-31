@@ -56,7 +56,6 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId) {
     };
 };
 
-
 /**
  * 画像をアップロードする
  * @param  {String} mediaPaths カンマで区切った画像のパス
@@ -103,7 +102,6 @@ async function upload(mediaPaths) {
     return mediaIds;
 };
 
-
 /**
  * ツイートを削除する
  * @param {String} tweetId ツイートID
@@ -120,7 +118,6 @@ async function deleteTweet(tweetId) {
         console.log('Deleted:'.bgBlue + ` ${text}`);
     };
 };
-
 
 /**
  * いいねの操作
@@ -142,7 +139,6 @@ async function favorite(tweetId, isRemoved) {
     };
 };
 
-
 /**
  * リツイートの操作
  * @param {String}  tweetId   ツイートID
@@ -162,7 +158,6 @@ async function retweet(tweetId, isRemoved) {
         console.log(msg.bgBlue + ` ${text}`);
     };
 };
-
 
 /**
  * フォローの操作
@@ -184,7 +179,6 @@ async function follow(screenName, isRemoved) {
     };
 };
 
-
 /**
  * ブロックの操作
  * @param {String}  screenName ユーザーのスクリーンネーム
@@ -205,7 +199,6 @@ async function block(screenName, isRemoved) {
     };
 };
 
-
 /**
  * ミュートの操作
  * @param {String}  screenName ユーザーのスクリーンネーム
@@ -225,7 +218,6 @@ async function mute(screenName, isRemoved) {
         console.log(msg.bgBlue + ` ${text}`);
     };
 };
-
 
 /**
  * タイムラインを取得して表示
@@ -258,7 +250,6 @@ async function getTimeline(mentionMode, count) {
 
     return tweets;
 };
-
 
 /**
  * ユーザータイムラインを表示して表示
@@ -296,7 +287,6 @@ async function getUserTimeline(userId, count) {
     return tweets;
 };
 
-
 /**
  * 対象のユーザーと自分との関係を取得
  * @param  {String} userId ユーザーID
@@ -319,7 +309,6 @@ async function getUserLookup(userId) {
 
     return connections;
 };
-
 
 /**
  * キーワードからツイートを検索して表示
@@ -345,7 +334,6 @@ async function searchTweet(query, count) {
     return tweets;
 };
 
-
 /**
  * ツイートのインデックスからIDを取得する
  * @param  {Array}  tl    タイムライン
@@ -367,7 +355,6 @@ function getTweetId(tl, index) {
 
     return tl[index].id_str;
 };
-
 
 /**
  * ツイートのインデックスからユーザーのスクリーンネームを取得する
