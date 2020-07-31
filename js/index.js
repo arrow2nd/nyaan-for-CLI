@@ -5,10 +5,66 @@ const colors = require('colors');
 const packageJson = require("../package.json");
 const api = require('./api.js');
 const util = require('./util.js');
+let displayingTweets = [];  // 表示中のツイート
 
 
-// 表示中のツイート
-let displayingTweets = [];
+/**
+ * ツイート/リプライ
+ * @param {String} tweetId リプライ先のツイートID
+ * @param {String} text    ツイート文
+ * @param {Array}  options コマンドのオプション
+ */
+async function tweet(tweetId, text, options) {
+    const path = options.media || '';
+    // 空の場合にゃーんに置き換える
+    text = (!text && !path) ? 'にゃーん' : text;
+    // ツイート
+    await api.tweetPost(text, path, tweetId).catch(err => console.error(err));
+    // プロパティを削除
+    delete options.media;
+};
+
+/**
+ * スクリーンネームを取得
+ * @param {*}       userId         スクリーンネームもしくはツイートのインデックス
+ * @param {Boolean} hasModifyValue 無効な値を0に修正するか
+ */
+function getScreenName(userId, hasModifyValue) {
+    // 無効な値を0に修正
+    userId = (!hasModifyValue || userId) ? userId : '0';
+    // インデックスが指定されている場合、対象ツイートのスクリーンネームに置き換える
+    if (!isNaN(userId)) {
+        userId = api.getUserId(displayingTweets, Number(userId), 0);
+    };
+
+    return userId;
+};
+
+/**
+ * 対話モード（無理矢理）
+ */
+async function interactive() {
+    let array = '';
+    
+    // タイムライン表示
+    displayingTweets = await api.getTimeline(0, 20).catch(err => console.error(err));
+    
+    while (1) {
+        // 入力を待つ
+        array = await util.readlineSync().catch(err => console.error(err));
+        // 空エンターでTL更新
+        if (!array[0]) {
+            array[0] = 'tl';
+        };
+        // コマンドを解析
+        try {
+            await program.parseAsync(array, { from: 'user' });
+        } catch(err) {
+            util.showCMDErrorMsg(err);
+        };
+    };
+};
+
 
 // process.exitをオーバーライド
 program.exitOverride();
@@ -18,7 +74,6 @@ program.version(packageJson.version, '-v, --version');
 
 // 名前とおおまかな使い方
 program.name('nyaan').usage('command [オプション]');
-
 
 // コンソールをクリア
 program
@@ -33,17 +88,7 @@ program
     .alias('tw')
     .description('ツイートします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
-    .action(async (text, options) => {
-        // パスがあるか確認
-        const path = options.media || '';
-        // テキストがない場合、にゃーんする
-        text = (!text && !path) ? 'にゃーん' : text;
-        // 投稿
-        await api.tweetPost(text, path, '').catch(err => console.error(err));
-        // オブジェクトを削除
-        delete options.media;
-        delete options.nyaan;
-    })
+    .action(async (text, options) => tweet('', text, options))
     .on('--help', () => {
         console.log('\nTips:');
         console.log('  ・テキストを省略すると、「にゃーん」に変換されます');
@@ -56,17 +101,10 @@ program
     .description('リプライします')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .action(async (index, text, options) => {
-        // ツイートIDを取得
         const tweetId = api.getTweetId(displayingTweets, index);
-        // リプライ
         if (tweetId) {
-            const path = options.media || '';
-            text = (!text && !path) ? 'にゃーん' : text;
-            await api.tweetPost(text, path, tweetId).catch(err => console.error(err));
+            await tweet(tweetId, text, options);
         };
-        // オブジェクトを削除
-        delete options.media;
-        delete options.nyaan;
     })
     .on('--help', () => {
         console.log('\nTips:');
@@ -123,12 +161,9 @@ program
     .alias('utl')
     .description('ユーザーのタイムラインを表示します')
     .action(async (userId, counts) => {
-        // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
-        if (!isNaN(userId)) {
-            userId = api.getUserId(displayingTweets, Number(userId), 1);
-        };
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await api.getUserTimeline(userId, counts).catch(err => console.error(err));
+        const screenName = getScreenName(userId, 0);
+        const timeline = await api.getUserTimeline(screenName, counts).catch(err => console.error(err));
         displayingTweets = (timeline) ? timeline : displayingTweets;
     })
     .on('--help', () => {
@@ -160,7 +195,7 @@ program
     .command('favorite <index>')
     .alias('fv')
     .description('いいね！の操作をします')
-    .option('-d, --delete', 'いいねを取り消します')
+    .option('-r, --remove', 'いいねを取り消します')
     .action(async (index, options) => {
         const isRemoved = (options.remove) ? 1 : 0;
         const tweetId = api.getTweetId(displayingTweets, index);
@@ -175,7 +210,7 @@ program
     .command('retweet <index>')
     .alias('rt')
     .description('リツイートの操作をします')
-    .option('-d, --delete', 'リツイートを取り消します')
+    .option('-r, --remove', 'リツイートを取り消します')
     .action(async (index, options) => {
         const isRemoved = (options.remove) ? 1 : 0;
         const tweetId = api.getTweetId(displayingTweets, index);
@@ -203,17 +238,12 @@ program
     .command('follow [userId]')
     .alias('fw')
     .description('フォローの操作をします')
-    .option('-d, --delete', 'フォローを解除します')
+    .option('-r, --remove', 'フォローを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
-        // userIdが指定されていない場合、0を指定
-        userId = (userId) ? userId : '0';
-        // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
-        if (!isNaN(userId)) {
-            userId = api.getUserId(displayingTweets, Number(userId), 0);
-        };
-        if (userId) {
-            await api.follow(userId, mode).catch(err => console.error(err));
+        const screenName = getScreenName(userId, 1);
+        if (screenName) {
+            await api.follow(screenName, mode).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -228,17 +258,12 @@ program
     .command('block [userId]')
     .alias('bk')
     .description('ブロックの操作をします')
-    .option('-d, --delete', 'ブロックを解除します')
+    .option('-r, --remove', 'ブロックを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
-        // userIdが指定されていない場合、0を指定
-        userId = (userId) ? userId : '0';
-        // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
-        if (!isNaN(userId)) {
-            userId = api.getUserId(displayingTweets, Number(userId), 0);
-        };
-        if (userId) {
-            await api.block(userId, mode).catch(err => console.error(err));
+        const screenName = getScreenName(userId, 1);
+        if (screenName) {
+            await api.block(screenName, mode).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -253,17 +278,12 @@ program
     .command('mute [userId]')
     .alias('mt')
     .description('ミュートの操作をします')
-    .option('-d, --delete', 'ミュートを解除します')
+    .option('-r, --remove', 'ミュートを解除します')
     .action(async (userId, options) => {
         const mode = (options.remove) ? 1 : 0;
-        // userIdが指定されていない場合、0を指定
-        userId = (userId) ? userId : '0';
-        // インデックスが指定された場合、対象ツイートのスクリーンネームに置き換える
-        if (!isNaN(userId)) {
-            userId = api.getUserId(displayingTweets, Number(userId), 0);
-        };
-        if (userId) {
-            await api.mute(userId, mode).catch(err => console.error(err));
+        const screenName = getScreenName(userId, 1);
+        if (screenName) {
+            await api.mute(screenName, mode).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -273,10 +293,7 @@ program
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます');
     });
 
-
-/**
- * 終了
- */
+// 終了
 program
     .command('exit')
     .alias('e')
@@ -293,33 +310,4 @@ if (process.argv[2]) {
     };
 } else {
     interactive();
-};
-
-
-/**
- * 対話型モード（無理矢理）
- */
-async function interactive() {
-    let array = '';
-    
-    // タイムライン表示
-    displayingTweets = await api.getTimeline(0, 20).catch(err => console.error(err));
-    
-    while (1) {
-        // 入力を待つ
-        array = await util.readlineSync().catch(err => console.error(err))
-        ;
-
-        // 空エンターでTL更新
-        if (!array[0]) {
-            array[0] = 'tl';
-        };
-
-        // コマンドを解析
-        try {
-            await program.parseAsync(array, { from: 'user' });
-        } catch(err) {
-            util.showCMDErrorMsg(err);
-        };
-    };
 };
