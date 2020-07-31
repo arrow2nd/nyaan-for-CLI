@@ -312,13 +312,13 @@ async function getUserLookup(userId) {
 
 /**
  * キーワードからツイートを検索して表示
- * @param  {String} query 検索キーワード
- * @param  {Number} count 取得件数（最大100件）
- * @return {Array}        取得したツイート
+ * @param  {String} keyword 検索キーワード
+ * @param  {Number} count   取得件数（最大100件）
+ * @return {Array}          取得したツイート
  */
-async function searchTweet(query, count) {
+async function searchTweet(keyword, count) {
     // 検索
-    const results = await client.get('search/tweets', {q: `${query}  exclude:retweets`, count: count}).catch(err => {
+    const results = await client.get('search/tweets', {q: `${keyword}  exclude:retweets`, count: count}).catch(err => {
         util.showAPIErrorMsg(err);
     });
 
@@ -333,7 +333,7 @@ async function searchTweet(query, count) {
 
     // 検索結果を表示
     tw.showTweet(tweets);
-    console.log('Info:'.bgCyan + `「${query}」の検索結果はこちらです`);
+    console.log('Info:'.bgCyan + `「${keyword}」の検索結果です`);
 
     return tweets;
 };
