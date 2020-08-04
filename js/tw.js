@@ -219,6 +219,7 @@ function createFotter(tweet) {
     return impression + fotter;
 };
 
+
 module.exports = {
     showTweet,
     showUserInfo

@@ -148,11 +148,11 @@ function showAPIErrorMsg(error) {
         return;
     };
 
-    // エラーを表示
+    // エラー内容をリストから取得
     const code = error[0].code;
     let msg = err[code];
     
-    // msgが無い場合、エラーオブジェクトから持ってくる
+    // リスト内に該当するエラーが無い場合、エラーオブジェクトのメッセージを代入
     if (!msg) {
         msg = error[0].message;
     };
@@ -176,6 +176,7 @@ function showCMDErrorMsg(error) {
         return;
     };
     
+    // リストに該当するエラーの場合無視する
     for (let code of ignore) {
         if (code == error.code) {
             return;
