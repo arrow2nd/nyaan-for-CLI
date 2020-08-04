@@ -7,6 +7,9 @@ const api = require('./api.js');
 const util = require('./util.js');
 let displayingTweets = [];  // 表示中のツイート
 
+//-------------------------------------------------------------------------
+//  なんかいろいろ
+//-------------------------------------------------------------------------
 
 /**
  * ツイート/リプライ
@@ -65,6 +68,9 @@ async function interactive() {
     };
 };
 
+//-------------------------------------------------------------------------
+//  コマンド登録
+//-------------------------------------------------------------------------
 
 // process.exitをオーバーライド
 program.exitOverride();
@@ -189,7 +195,7 @@ program
     .action(async (keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 100) ? 20 : counts;
         const tweets = await api.searchTweet(keyword, counts).catch(err => console.error(err));
-        displayingTweets = (tweets) ? tweets.statuses : displayingTweets;
+        displayingTweets = (tweets) ? tweets : displayingTweets;
     })
     .on('--help', () => {
         console.log('\nTips:');
@@ -314,6 +320,9 @@ program
     .description('nyaanを終了します')
     .action(() => process.exit(0));
 
+//-------------------------------------------------------------------------
+//  ここまで
+//-------------------------------------------------------------------------
 
 // コマンドがあれば解析、なければ対話型のやつを開始
 if (process.argv[2]) {
