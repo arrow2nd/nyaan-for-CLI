@@ -278,7 +278,7 @@ async function searchTweet(keyword, count) {
     };
     // 検索結果を表示
     tw.showTweet(tweets);
-    console.log(' Info '.bgCyan + `「${keyword}」の検索結果です`);
+    console.log(' Info '.black.bgCyan + `「${keyword}」の検索結果です`);
     return tweets;
 };
 

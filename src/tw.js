@@ -71,7 +71,7 @@ function showTweet(tweets) {
             tweet = tweet.retweeted_status;
         };
         // 表示内容を作成
-        const index = ` ${i}:`.brightWhite.bgBrightBlue;
+        const index = ` ${i} `.brightWhite.bgBrightBlue;
         const header = index + ' ' + createHeader(tweet.user);
         const postText = formatTweet(tweet);
         const fotter = createFotter(tweet);
