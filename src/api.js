@@ -28,20 +28,18 @@ const client = new Twitter({
  */
 async function tweetPost(tweetText, mediaPaths, replyToPostId) {
     let status = {};
-    let action = 'Tweeted:';
+    let action = ' Tweeted ';
     // ツイート内容を追加
     status.status = tweetText;    
     // リプライの設定
     if (replyToPostId) {
-        action = 'Replied:';
+        action = ' Replied ';
         status.in_reply_to_status_id = replyToPostId;
         status.auto_populate_reply_metadata = true;
     };
     // 画像があればアップロード
     if (mediaPaths) {
-        status.media_ids = await upload(mediaPaths).catch(err => {
-            util.showAPIErrorMsg(err);
-        });
+        status.media_ids = await upload(mediaPaths).catch(err => util.showAPIErrorMsg(err));
     };
     // ツイート
     const tweet = await client.post('statuses/update', status).catch(err => util.showAPIErrorMsg(err));
@@ -65,7 +63,7 @@ async function upload(mediaPaths) {
         try {
             fs.statSync(filePath);
         } catch(err) {
-            console.error('Error:'.bgRed + ` ファイルが見つかりません (${filePath})`.brightRed);
+            console.error(' Error '.bgRed + ` ファイルが見つかりません (${filePath})`.brightRed);
             continue;
         };
         // 拡張子を検証
@@ -77,15 +75,15 @@ async function upload(mediaPaths) {
             try {
                 media = await client.post('media/upload', {media: file});
             } catch(err) {
-                console.error('Error:'.bgRed + `アップロードに失敗しました (${filePath})`.brightRed);
+                console.error(' Error '.bgRed + `アップロードに失敗しました (${filePath})`.brightRed);
                 continue;
             };
             // メディアIDを保存
             mediaIds += media.media_id_string + ',';
             // 完了メッセージ
-            console.log('Success:'.bgGreen + ` アップロードしました！(${filePath})`.brightGreen);
+            console.log(' Success '.bgGreen + ` アップロードしました！(${filePath})`.brightGreen);
         } else {
-            console.error('Error:'.bgRed + ` 未対応の拡張子です (${ext})`.brightRed);
+            console.error(' Error '.bgRed + ` 未対応の拡張子です (${ext})`.brightRed);
             continue;
         };
     };
@@ -100,9 +98,9 @@ async function deleteTweet(tweetId) {
     const tweet = await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => util.showAPIErrorMsg(err));
     // 完了メッセージ
     if (tweet) {
-        const width = process.stdout.columns - 20;
-        const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
-        console.log('Deleted:'.bgBlue + ` ${text}`);
+        const width = process.stdout.columns - 12;
+        const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
+        console.log(' Deleted '.bgBlue + ` ${text}`);
     };
 };
 
@@ -116,9 +114,9 @@ async function favorite(tweetId, isRemoved) {
     const tweet = await client.post(`favorites/${type[isRemoved]}`, {id: tweetId}).catch(err => util.showAPIErrorMsg(err));
     // 完了メッセージ
     if (tweet) {
-        const msg = (isRemoved) ? 'Un-liked:' : 'Liked:';
+        const msg = (isRemoved) ? ' Un-liked ' : ' Liked ';
         const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
+        const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
         console.log(msg.bgBlue + ` ${text}`);
     };
 };
@@ -133,9 +131,9 @@ async function retweet(tweetId, isRemoved) {
     const tweet = await client.post(`statuses/${type[isRemoved]}/${tweetId}`, {id: tweetId}).catch(err => util.showAPIErrorMsg(err));
     // 完了メッセージ
     if (tweet) {
-        const msg = (isRemoved) ? 'Un-retweeted:' : 'Retweeted:';
+        const msg = (isRemoved) ? ' Un-retweeted ' : ' Retweeted ';
         const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(tweet.text), 0, width, 1);
+        const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
         console.log(msg.bgBlue + ` ${text}`);
     };
 };
@@ -150,9 +148,9 @@ async function follow(screenName, isRemoved) {
     const user = await client.post(`friendships/${type[isRemoved]}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
     // 完了メッセージ
     if (user) {
-        const msg = (isRemoved) ? 'Un-followed:' : 'Followed:';
+        const msg = (isRemoved) ? ' Un-followed ' : ' Followed ';
         const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
+        const text = util.strCat(util.optimizeText(user.name), 0, width, true);
         console.log(msg.bgBlue + ` ${text}`);
     };
 };
@@ -167,9 +165,9 @@ async function block(screenName, isRemoved) {
     const user = await client.post(`blocks/${type[isRemoved]}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
     // 完了メッセージ
     if (user) {
-        const msg = (isRemoved) ? 'Un-blocked:' : 'Blocked:';
+        const msg = (isRemoved) ? ' Un-blocked ' : ' Blocked ';
         const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
+        const text = util.strCat(util.optimizeText(user.name), 0, width, true);
         console.log(msg.bgBlue + ` ${text}`);
     };
 };
@@ -184,9 +182,9 @@ async function mute(screenName, isRemoved) {
     const user = await client.post(`mutes/users/${type[isRemoved]}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
     // 完了メッセージ
     if (user) {
-        const msg = (isRemoved) ? 'Un-muted:' : 'Muted:';
+        const msg = (isRemoved) ? ' Un-muted ' : ' Muted ';
         const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(user.name), 0, width, 1);
+        const text = util.strCat(util.optimizeText(user.name), 0, width, true);
         console.log(msg.bgBlue + ` ${text}`);
     };
 };
@@ -210,7 +208,7 @@ async function getTimeline(mentionMode, count) {
     const tweets = await client.get(`statuses/${type[mentionMode]}`, param).catch(err => util.showAPIErrorMsg(err));
     // データがあるか検証
     if (!tweets.length) {
-        console.log('Error:'.bgRed + ' データがありません');
+        console.log(' Error '.bgRed + ' データがありません');
         return [];
     };
     // タイムラインを表示
@@ -232,7 +230,7 @@ async function getUserTimeline(userId, count) {
     const tweets = await client.get('statuses/user_timeline', param).catch(err => util.showAPIErrorMsg(err));
     // データがあるか検証
     if (!tweets.length) {
-        console.log('Info:'.bgRed + ' ユーザーがみつかりませんでした...');
+        console.log(' Error '.bgRed + ' ユーザーがみつかりませんでした...');
         return [];
     };
     // 対象ユーザーと自分との関係を取得
@@ -275,12 +273,12 @@ async function searchTweet(keyword, count) {
     const tweets = results.statuses;
     // データがあるか検証
     if (!tweets.length) {
-        console.log('Info:'.bgRed + ' みつかりませんでした...');
+        console.log(' Error '.bgRed + ' みつかりませんでした...');
         return [];
     };
     // 検索結果を表示
     tw.showTweet(tweets);
-    console.log('Info:'.bgCyan + `「${keyword}」の検索結果です`);
+    console.log(' Info '.bgCyan + `「${keyword}」の検索結果です`);
     return tweets;
 };
 
@@ -297,12 +295,12 @@ async function searchTweet(keyword, count) {
 function getTweetId(tl, index) {
     // 数値か検証
     if (!index || isNaN(index)) {
-        console.error('Error:'.bgRed + ' インデックスが不正です'.brightRed);
+        console.error(' Error '.bgRed + ' インデックスが不正です'.brightRed);
         return '';
     };
     // インデックスが存在するか検証
     if (index > tl.length - 1) {
-        console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
+        console.error(' Error '.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
     };
     return tl[index].id_str;
@@ -318,12 +316,12 @@ function getTweetId(tl, index) {
 function getUserId(tl, index, isGetRtUser) {
     // 数値か検証
     if (isNaN(index)) {
-        console.error('Error:'.bgRed + ' インデックスが不正です'.brightRed);
+        console.error(' Error '.bgRed + ' インデックスが不正です'.brightRed);
         return '';
     };
     // インデックスが存在するか検証
     if (index > tl.length - 1) {
-        console.error('Error:'.bgRed + ' ツイートが存在しません'.brightRed);
+        console.error(' Error '.bgRed + ' ツイートが存在しません'.brightRed);
         return '';
     };
     // 対象のツイートを取得
