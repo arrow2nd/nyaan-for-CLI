@@ -1,5 +1,6 @@
 'use strict';
 const fs = require('fs');
+const path = require('path');
 const colors = require('colors');
 const OAuth = require('oauth').OAuth;
 const util = require('./util.js');
@@ -47,7 +48,7 @@ async function authenticate() {
         console.error(' Error '.bgRed + ` ${err.data}`);
         process.exit(1);
     });
-    fs.writeFileSync('./config/config.json', JSON.stringify(accessToken));
+    fs.writeFileSync(path.join(__dirname, '../config/config.json'), JSON.stringify(accessToken));
     return;
 };
 

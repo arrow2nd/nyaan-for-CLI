@@ -16,10 +16,10 @@ const nyaan = require('../config/nyaan.json');
  * 設定ファイルを読み込む
  */
 async function loadConfig() {
-    if (!fs.existsSync('./config/config.json')) {
+    if (!fs.existsSync(path.join(__dirname, '../config/config.json'))) {
         await oauth.authenticate();
     };
-    const conf = JSON.parse(fs.readFileSync('./config/config.json'));
+    const conf = JSON.parse(fs.readFileSync(path.join(__dirname, '../config/config.json')));
     return conf;
 };
 
