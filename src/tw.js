@@ -3,7 +3,6 @@ const colors = require('colors');
 const moment = require('moment');
 const util = require('./util.js');
 
-
 /**
  * ユーザーのプロフィールを表示
  * @param {Object} user        ユーザーオブジェクト
@@ -64,7 +63,7 @@ function showTweet(tweets) {
     // ツイートの解析
     for (let i = tweets.length - 1;i >= 0;i--) {
         let tweet = tweets[i];
-        // RTだった場合、RT元のツイートに置き換える
+        // RTだった場合RT元のツイートに置き換える
         let rtByUser;
         if (tweet.retweeted_status) {
             rtByUser = `RT by ${util.optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;

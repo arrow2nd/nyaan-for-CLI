@@ -1,20 +1,41 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const dotenv = require('dotenv');
 const colors = require('colors');
+const Twitter = require('twitter');
 const tw = require('./tw.js');
 const util = require('./util.js');
-const Twitter = require('twitter');
+const oauth = require('./oauth.js');
+const nyaan = require('../config/nyaan.json');
 
-// 認証
-dotenv.config({path: path.join(__dirname, "../.env")});
-const client = new Twitter({
-    consumer_key: `${process.env.CONSUMER_KEY}`,
-    consumer_secret: `${process.env.CONSUMER_SECRET}`,
-    access_token_key: `${process.env.ACCESS_TOKEN}`,
-    access_token_secret: `${process.env.ACCESS_TOKEN_SECRET}`
-});
+//-------------------------------------------------------------------------
+//  認証のあれこれ
+//-------------------------------------------------------------------------
+
+/**
+ * 設定ファイルを読み込む
+ */
+async function loadConfig() {
+    if (!fs.existsSync('./config/config.json')) {
+        await oauth.authenticate();
+    };
+    const conf = JSON.parse(fs.readFileSync('./config/config.json'));
+    return conf;
+};
+
+/**
+ * クライアントを作成
+ * @param  {Object} token トークンオブジェクト
+ * @return {Twitter}
+ */
+function createClient(token) {
+    return new Twitter({
+        consumer_key: `${nyaan.CONSUMER_KEY}`,
+        consumer_secret: `${nyaan.CONSUMER_SECRET}`,
+        access_token_key: `${token.ACCESS_TOKEN}`,
+        access_token_secret: `${token.ACCESS_TOKEN_SECRET}`
+    });        
+};
 
 //-------------------------------------------------------------------------
 //  ツイート・反応・フォロー・アンフォロー等の操作
@@ -22,11 +43,13 @@ const client = new Twitter({
 
 /**
  * ツイートする
+ * @param {Object} token         トークンオブジェクト
  * @param {String} tweetText     ツイート内容
  * @param {String} mediaPaths    添付する画像のパス(複数ある場合は,区切り)
  * @param {String} replyToPostId リプライ先の投稿ID
  */
-async function tweetPost(tweetText, mediaPaths, replyToPostId) {
+async function tweetPost(token, tweetText, mediaPaths, replyToPostId) {
+    const client = createClient(token);
     let status = {};
     let action = ' Tweeted ';
     // ツイート内容を追加
@@ -39,154 +62,162 @@ async function tweetPost(tweetText, mediaPaths, replyToPostId) {
     };
     // 画像があればアップロード
     if (mediaPaths) {
-        status.media_ids = await upload(mediaPaths).catch(err => util.showAPIErrorMsg(err));
+        status.media_ids = await upload(token, mediaPaths)//.catch(err => util.showAPIErrorMsg(err));
     };
     // ツイート
     const tweet = await client.post('statuses/update', status).catch(err => util.showAPIErrorMsg(err));
-    // 完了メッセージ
-    if (tweet) console.log(action.bgBlue + ` ${tweet.text}`);
-};0
+    // 完了
+    if (!tweet) return;
+    console.log(action.bgBlue + ` ${tweet.text}`);
+};
 
 /**
  * 画像をアップロードする
+ * @param  {Object} token      トークンオブジェクト
  * @param  {String} mediaPaths カンマで区切った画像のパス
  * @return {String}            メディアID
  */
-async function upload(mediaPaths) {
+async function upload(token, mediaPaths) {
+    const client = createClient(token);
     const paths = mediaPaths.split(',');
     const pathLength = (paths.length > 4) ? 4 : paths.length;
     let mediaIds = '';
 
     for (let i = 0; i < pathLength; i++) {
         const filePath = paths[i].trim();
-        // 画像があるか検証
+        // 画像があるかチェック
         try {
             fs.statSync(filePath);
         } catch(err) {
             console.error(' Error '.bgRed + ` ファイルが見つかりません (${filePath})`.brightRed);
             continue;
         };
-        // 拡張子を検証
+        // 画像ファイルかチェック
         const ext = path.extname(filePath).toLowerCase();
-        if (ext == '.jpg' || ext == '.jpeg' || ext == '.png' || ext == '.gif') {
-            const file = fs.readFileSync(filePath);
-            // アップロード
-            let media;
-            try {
-                media = await client.post('media/upload', {media: file});
-            } catch(err) {
-                console.error(' Error '.bgRed + `アップロードに失敗しました (${filePath})`.brightRed);
-                continue;
-            };
-            // メディアIDを保存
-            mediaIds += media.media_id_string + ',';
-            // 完了メッセージ
-            console.log(' Success '.bgGreen + ` アップロードしました！(${filePath})`.brightGreen);
-        } else {
+        if (ext != '.jpg' && ext != '.jpeg' && ext != '.png' && ext != '.gif') {
             console.error(' Error '.bgRed + ` 未対応の拡張子です (${ext})`.brightRed);
             continue;
         };
+        // アップロード
+        const file = fs.readFileSync(filePath);
+        let media;
+        try {
+            media = await client.post('media/upload', {media: file});
+        } catch(err) {
+            console.error(' Error '.bgRed + `アップロードに失敗しました (${filePath})`.brightRed);
+            continue;
+        };
+        // メディアIDを記録
+        mediaIds += media.media_id_string + ',';
+        // 完了
+        console.log(' Success '.bgGreen + ` アップロードしました！(${filePath})`.brightGreen);
     };
     return mediaIds;
 };
 
 /**
  * ツイートを削除する
+ * @param {Object} token   トークンオブジェクト
  * @param {String} tweetId ツイートID
  */
-async function deleteTweet(tweetId) {
+async function deleteTweet(token, tweetId) {
+    const client = createClient(token);
     const tweet = await client.post(`statuses/destroy/${tweetId}`, {id: tweetId}).catch(err => util.showAPIErrorMsg(err));
-    // 完了メッセージ
-    if (tweet) {
-        const width = process.stdout.columns - 12;
-        const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
-        console.log(' Deleted '.bgBlue + ` ${text}`);
-    };
+    // 完了
+    if (!tweet) return;
+    const width = process.stdout.columns - 12;
+    const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
+    console.log(' Deleted '.bgBlue + ` ${text}`);
 };
 
 /**
- * いいねの操作
+ * いいね
+ * @param {Object} token      トークンオブジェクト
  * @param {String}  tweetId   ツイートID
- * @param {Boolean} isRemoved 取り消すかどうか
+ * @param {Boolean} isRemoved いいねを取り消すかどうか
  */
-async function favorite(tweetId, isRemoved) {
-    const type = ['create', 'destroy'];
-    const tweet = await client.post(`favorites/${type[isRemoved]}`, {id: tweetId}).catch(err => util.showAPIErrorMsg(err));
-    // 完了メッセージ
-    if (tweet) {
-        const msg = (isRemoved) ? ' Un-liked ' : ' Liked ';
-        const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
-        console.log(msg.bgBlue + ` ${text}`);
-    };
+async function favorite(token, tweetId, isRemoved) {
+    const client = createClient(token);
+    const type = (isRemoved) ? 'destroy' : 'create';
+    const tweet = await client.post(`favorites/${type}`, {id: tweetId}).catch(err => util.showAPIErrorMsg(err));
+    // 完了
+    if (!tweet) return;
+    const msg = (isRemoved) ? ' Un-liked ' : ' Liked ';
+    const width = process.stdout.columns - msg.length - 3;
+    const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
+    console.log(msg.bgBrightMagenta + ` ${text}`);
 };
 
 /**
- * リツイートの操作
+ * リツイート
+ * @param {Object}  token     トークンオブジェクト
  * @param {String}  tweetId   ツイートID
- * @param {Boolean} isRemoved 取り消すかどうか
+ * @param {Boolean} isRemoved リツイートを取り消すかどうか
  */
-async function retweet(tweetId, isRemoved) {
-    const type = ['retweet', 'unretweet'];
-    const tweet = await client.post(`statuses/${type[isRemoved]}/${tweetId}`, {id: tweetId}).catch(err => util.showAPIErrorMsg(err));
-    // 完了メッセージ
-    if (tweet) {
-        const msg = (isRemoved) ? ' Un-retweeted ' : ' Retweeted ';
-        const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
-        console.log(msg.bgBlue + ` ${text}`);
-    };
+async function retweet(token, tweetId, isRemoved) {
+    const client = createClient(token);
+    const type = (isRemoved) ? 'unretweet' : 'retweet';
+    const tweet = await client.post(`statuses/${type}/${tweetId}`, {id: tweetId}).catch(err => util.showAPIErrorMsg(err));
+    // 完了
+    if (!tweet) return;
+    const msg = (isRemoved) ? ' Un-retweeted ' : ' Retweeted ';
+    const width = process.stdout.columns - msg.length - 3;
+    const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
+    console.log(msg.black.bgBrightGreen + ` ${text}`);
 };
 
 /**
- * フォローの操作
+ * フォロー
+ * @param {Object}  token      トークンオブジェクト
  * @param {String}  screenName ユーザーのスクリーンネーム
  * @param {Boolean} isRemoved  フォローを解除するかどうか
  */
-async function follow(screenName, isRemoved) {
-    const type = ['create', 'destroy'];
-    const user = await client.post(`friendships/${type[isRemoved]}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
-    // 完了メッセージ
-    if (user) {
-        const msg = (isRemoved) ? ' Un-followed ' : ' Followed ';
-        const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(user.name), 0, width, true);
-        console.log(msg.bgBlue + ` ${text}`);
-    };
+async function follow(token, screenName, isRemoved) {
+    const client = createClient(token);
+    const type = (isRemoved) ? 'destroy' : 'create';
+    const user = await client.post(`friendships/${type}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
+    // 完了
+    if (!user) return;
+    const msg = (isRemoved) ? ' Un-followed ' : ' Followed ';
+    const width = process.stdout.columns - msg.length - 3;
+    const text = util.strCat(util.optimizeText(user.name), 0, width, true);
+    console.log(msg.bgBlue + ` ${text}`);
 };
 
 /**
- * ブロックの操作
+ * ブロック
+ * @param {Object}  token      トークンオブジェクト
  * @param {String}  screenName ユーザーのスクリーンネーム
  * @param {Boolean} isRemoved  解除するかどうか
  */
 async function block(screenName, isRemoved) {
-    const type = ['create', 'destroy'];
-    const user = await client.post(`blocks/${type[isRemoved]}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
-    // 完了メッセージ
-    if (user) {
-        const msg = (isRemoved) ? ' Un-blocked ' : ' Blocked ';
-        const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(user.name), 0, width, true);
-        console.log(msg.bgBlue + ` ${text}`);
-    };
+    const client = createClient(token);
+    const type = (isRemoved) ? 'destroy' : 'create';
+    const user = await client.post(`blocks/${type}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
+    // 完了
+    if (!user) return;
+    const msg = (isRemoved) ? ' Un-blocked ' : ' Blocked ';
+    const width = process.stdout.columns - msg.length - 3;
+    const text = util.strCat(util.optimizeText(user.name), 0, width, true);
+    console.log(msg.bgRed + ` ${text}`);
 };
 
 /**
- * ミュートの操作
+ * ミュート
+ * @param {Object}  token      トークンオブジェクト
  * @param {String}  screenName ユーザーのスクリーンネーム
  * @param {Boolean} isRemoved  解除するかどうか
  */
-async function mute(screenName, isRemoved) {
-    const type = ['create', 'destroy'];
-    const user = await client.post(`mutes/users/${type[isRemoved]}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
-    // 完了メッセージ
-    if (user) {
-        const msg = (isRemoved) ? ' Un-muted ' : ' Muted ';
-        const width = process.stdout.columns - msg.length - 3;
-        const text = util.strCat(util.optimizeText(user.name), 0, width, true);
-        console.log(msg.bgBlue + ` ${text}`);
-    };
+async function mute(token, screenName, isRemoved) {
+    const client = createClient(token);
+    const type = (isRemoved) ? 'destroy' : 'create';
+    const user = await client.post(`mutes/users/${type}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
+    // 完了
+    if (!user) return;
+    const msg = (isRemoved) ? ' Un-muted ' : ' Muted ';
+    const width = process.stdout.columns - msg.length - 3;
+    const text = util.strCat(util.optimizeText(user.name), 0, width, true);
+    console.log(msg.black.bgYellow + ` ${text}`);
 };
 
 //-------------------------------------------------------------------------
@@ -195,18 +226,20 @@ async function mute(screenName, isRemoved) {
 
 /**
  * タイムラインを取得して表示
+ * @param  {Object}  token       トークンオブジェクト
  * @param  {Boolean} mentionMode メンション取得モード
  * @param  {Number}  count       取得件数（最大200件）
  * @return {Array}               取得したツイート
  */
-async function getTimeline(mentionMode, count) {
-    const type = ['home_timeline', 'mentions_timeline'];
+async function getTimeline(token, mentionMode, count) {
+    const client = createClient(token);
+    const type = (mentionMode) ? 'mentions_timeline' : 'home_timeline';
     let param = { count: count };
-    // TL取得モードの場合は、リプライを含めない
-    if (mentionMode == 0) param.exclude_replies = true;
+    // TL取得モードの場合はリプライを含めない
+    if (!mentionMode) param.exclude_replies = true;
     // 取得
-    const tweets = await client.get(`statuses/${type[mentionMode]}`, param).catch(err => util.showAPIErrorMsg(err));
-    // データがあるか検証
+    const tweets = await client.get(`statuses/${type}`, param).catch(err => util.showAPIErrorMsg(err));
+    // データがあるかチェック
     if (!tweets.length) {
         console.log(' Error '.bgRed + ' データがありません');
         return [];
@@ -218,17 +251,19 @@ async function getTimeline(mentionMode, count) {
 
 /**
  * ユーザータイムラインを表示して表示
- * @param  {String} userId ユーザーID(空にすると自分の投稿を取得)
+ * @param  {Object} token  トークンオブジェクト
+ * @param  {String} userId ユーザーID（空の場合自分の投稿を取得）
  * @param  {Number} count  取得件数（最大200件）
  * @return {Array}         取得したツイート
  */
-async function getUserTimeline(userId, count) {
-    let param = { count: count };    
-    // ユーザーIDがあれば追加する
+async function getUserTimeline(token, userId, count) {
+    const client = createClient(token);
+    let param = { count: count };
+    // ユーザーIDがあれば追加
     if (userId) param.screen_name = userId.replace(/@|＠/, '');
     // 取得
     const tweets = await client.get('statuses/user_timeline', param).catch(err => util.showAPIErrorMsg(err));
-    // データがあるか検証
+    // データがあるかチェック
     if (!tweets.length) {
         console.log(' Error '.bgRed + ' ユーザーがみつかりませんでした...');
         return [];
@@ -244,10 +279,12 @@ async function getUserTimeline(userId, count) {
 
 /**
  * 対象のユーザーと自分との関係を取得
+ * @param  {Object} token  トークンオブジェクト
  * @param  {String} userId ユーザーID
  * @return {Object}        対象ユーザーとの関係
  */
-async function getUserLookup(userId) {
+async function getUserLookup(token, userId) {
+    const client = createClient(token);
     let connections = {};
     // 取得
     const lookup = await client.get('friendships/lookup', {user_id: userId}).catch(err => util.showAPIErrorMsg(err));
@@ -262,23 +299,24 @@ async function getUserLookup(userId) {
 
 /**
  * キーワードからツイートを検索して表示
+ * @param  {Object} token   トークンオブジェクト
  * @param  {String} keyword 検索キーワード
  * @param  {Number} count   取得件数（最大100件）
  * @return {Array}          取得したツイート
  */
-async function searchTweet(keyword, count) {
+async function searchTweet(token, keyword, count) {
+    const client = createClient(token);
     // 検索
     const results = await client.get('search/tweets', {q: `${keyword}  exclude:retweets`, count: count}).catch(err => util.showAPIErrorMsg(err));
-    // ヒットしたツイート
     const tweets = results.statuses;
-    // データがあるか検証
+    // データがあるかチェック
     if (!tweets.length) {
         console.log(' Error '.bgRed + ' みつかりませんでした...');
         return [];
     };
     // 検索結果を表示
     tw.showTweet(tweets);
-    console.log(' Info '.black.bgCyan + `「${keyword}」の検索結果です`);
+    console.log(' Info '.bgBlue + `「${keyword}」の検索結果です`);
     return tweets;
 };
 
@@ -327,10 +365,11 @@ function getUserId(tl, index, isGetRtUser) {
     // 対象のツイートを取得
     const tweet = tl[index];
     // RTの場合はRT元のスクリーンネームを返す
-    return (isGetRtUser ==1 && tweet.retweeted_status) ? tweet.retweeted_status.user.screen_name : tweet.user.screen_name;
+    return (isGetRtUser && tweet.retweeted_status) ? tweet.retweeted_status.user.screen_name : tweet.user.screen_name;
 };
 
 module.exports = {
+    loadConfig,
     tweetPost,
     deleteTweet,
     favorite,

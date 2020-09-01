@@ -2,10 +2,12 @@
 'use strict';
 const program = require('commander');
 const colors = require('colors');
-const packageJson = require("../package.json");
 const api = require('./api.js');
 const util = require('./util.js');
-let displayingTweets = [];  // 表示中のツイート
+const packageJson = require("../package.json");
+
+let token = {};
+let displayingTweets = [];
 
 //-------------------------------------------------------------------------
 //  なんかいろいろ
@@ -32,7 +34,7 @@ async function tweet(tweetId, text, options) {
     // 装飾
     if (style) text = util.decorateCharacter(style, text);
     // ツイート
-    await api.tweetPost(text, path, tweetId).catch(err => console.error(err));
+    await api.tweetPost(token, text, path, tweetId).catch(err => console.error(err));
     // プロパティを削除
     delete options.media;
     delete options.bold;
@@ -55,7 +57,6 @@ function getScreenName(userId, hasModifyValue) {
     if (!isNaN(userId)) {
         userId = api.getUserId(displayingTweets, Number(userId), 0);
     };
-
     return userId;
 };
 
@@ -65,14 +66,12 @@ function getScreenName(userId, hasModifyValue) {
 async function interactive() {
     let array = '';
     // タイムライン表示
-    displayingTweets = await api.getTimeline(0, 20).catch(err => console.error(err));    
+    displayingTweets = await api.getTimeline(token, false, 20).catch(err => console.error(err));    
     while (1) {
         // 入力を待つ
         array = await util.readlineSync().catch(err => console.error(err));
         // 空エンターでTL更新
-        if (!array[0]) {
-            array[0] = 'tl';
-        };
+        if (!array[0]) array[0] = 'tl';
         // コマンドを解析
         try {
             await program.parseAsync(array, { from: 'user' });
@@ -148,7 +147,7 @@ program
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
-            await api.deleteTweet(tweetId).catch(err => console.error(err));
+            await api.deleteTweet(token, tweetId).catch(err => console.error(err));
         };
     });
 
@@ -160,7 +159,7 @@ program
     .description('タイムラインを表示します')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await api.getTimeline(0, counts).catch(err => console.error(err));
+        const timeline = await api.getTimeline(token, false, counts).catch(err => console.error(err));
         displayingTweets = (timeline) ? timeline : displayingTweets;
     })
     .on('--help', () => {
@@ -177,7 +176,7 @@ program
     .description('自分宛てのメンションを表示します')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const timeline = await api.getTimeline(1, counts).catch(err => console.error(err));
+        const timeline = await api.getTimeline(token, true, counts).catch(err => console.error(err));
         displayingTweets = (timeline) ? timeline : displayingTweets;
     })
     .on('--help', () => {
@@ -194,8 +193,8 @@ program
     .description('ユーザーのタイムラインを表示します')
     .action(async (userId, counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const screenName = getScreenName(userId, 0);
-        const timeline = await api.getUserTimeline(screenName, counts).catch(err => console.error(err));
+        const screenName = getScreenName(userId, false);
+        const timeline = await api.getUserTimeline(token, screenName, counts).catch(err => console.error(err));
         displayingTweets = (timeline) ? timeline : displayingTweets;
     })
     .on('--help', () => {
@@ -214,7 +213,7 @@ program
     .description('キーワードからツイートを検索します')
     .action(async (keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 100) ? 20 : counts;
-        const tweets = await api.searchTweet(keyword, counts).catch(err => console.error(err));
+        const tweets = await api.searchTweet(token, keyword, counts).catch(err => console.error(err));
         displayingTweets = (tweets) ? tweets : displayingTweets;
     })
     .on('--help', () => {
@@ -232,10 +231,10 @@ program
     .description('いいね！の操作をします')
     .option('-r, --remove', 'いいねを取り消します')
     .action(async (index, options) => {
-        const isRemoved = (options.remove) ? 1 : 0;
+        const isRemoved = (options.remove) ? true : false;
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
-            await api.favorite(tweetId, isRemoved).catch(err => console.error(err));
+            await api.favorite(token, tweetId, isRemoved).catch(err => console.error(err));
         };
         delete options.remove;
     });
@@ -248,10 +247,10 @@ program
     .description('リツイートの操作をします')
     .option('-r, --remove', 'リツイートを取り消します')
     .action(async (index, options) => {
-        const isRemoved = (options.remove) ? 1 : 0;
+        const isRemoved = (options.remove) ? true : false;
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
-            await api.retweet(tweetId, isRemoved).catch(err => console.error(err));
+            await api.retweet(token, tweetId, isRemoved).catch(err => console.error(err));
         };
         delete options.remove;
     });
@@ -265,8 +264,8 @@ program
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
-            await api.favorite(tweetId, 0).catch(err => console.error(err));
-            await api.retweet(tweetId, 0).catch(err => console.error(err));
+            await api.favorite(token, tweetId, false).catch(err => console.error(err));
+            await api.retweet(token, tweetId, false).catch(err => console.error(err));
         };
     });
 
@@ -278,10 +277,10 @@ program
     .description('フォローの操作をします')
     .option('-r, --remove', 'フォローを解除します')
     .action(async (userId, options) => {
-        const mode = (options.remove) ? 1 : 0;
-        const screenName = getScreenName(userId, 1);
+        const isRemoved = (options.remove) ? true : false;
+        const screenName = getScreenName(userId, true);
         if (screenName) {
-            await api.follow(screenName, mode).catch(err => console.error(err));
+            await api.follow(token, screenName, isRemoved).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -299,10 +298,10 @@ program
     .description('ブロックの操作をします')
     .option('-r, --remove', 'ブロックを解除します')
     .action(async (userId, options) => {
-        const mode = (options.remove) ? 1 : 0;
-        const screenName = getScreenName(userId, 1);
+        const isRemoved = (options.remove) ? true : false;
+        const screenName = getScreenName(userId, true);
         if (screenName) {
-            await api.block(screenName, mode).catch(err => console.error(err));
+            await api.block(token, screenName, isRemoved).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -320,10 +319,10 @@ program
     .description('ミュートの操作をします')
     .option('-r, --remove', 'ミュートを解除します')
     .action(async (userId, options) => {
-        const mode = (options.remove) ? 1 : 0;
-        const screenName = getScreenName(userId, 1);
+        const isRemoved = (options.remove) ? true : false;
+        const screenName = getScreenName(userId, true);
         if (screenName) {
-            await api.mute(screenName, mode).catch(err => console.error(err));
+            await api.mute(token, screenName, isRemoved).catch(err => console.error(err));
         };
         delete options.remove;
     })
@@ -341,16 +340,19 @@ program
     .action(() => process.exit(0));
 
 //-------------------------------------------------------------------------
-//  ここまで
+//  メイン
 //-------------------------------------------------------------------------
 
-// コマンドがあれば解析、なければ対話型のやつを開始
-if (process.argv[2]) {
-    try {
-        program.parse(process.argv);
-    } catch(err) {
-        util.showCMDErrorMsg(err);
+(async () => {
+    token = await api.loadConfig();
+    // コマンドがあれば解析、なければ対話型で実行
+    if (process.argv[2]) {
+        try {
+            program.parse(process.argv);
+        } catch(err) {
+            util.showCMDErrorMsg(err);
+        };
+    } else {
+        interactive();
     };
-} else {
-    interactive();
-};
+})();

@@ -1,7 +1,6 @@
 'use strict';
 const readline = require('readline');
 const colors = require('colors');
-const emoji = require('node-emoji-new');
 const split = require('graphemesplit');
 
 /**
@@ -15,7 +14,7 @@ function readlineSync() {
             output: process.stdout
         });
         // 入力受付
-        rl.question('>'.brightWhite + '>'.brightCyan + '> '.cyan, (input) => {
+        rl.question('>'.white + '> '.cyan, (input) => {
             rl.close();
             resolve(input.split(' '));
         });
@@ -64,7 +63,7 @@ function getStrWidth(text) {
 function insert(text, length, add) {
     let start = 0, result = '', rest = text;    
     while (length < getStrWidth(rest)) {
-        result += strCat(text, start, length, 0); // 範囲切り出し
+        result += strCat(text, start, length, false); // 範囲切り出し
         start = result.length;                    // 次の切り出し位置をズラす
         result += add;                            // 指定の文字を追加
         rest = text.slice(start);                 // 残り
@@ -172,7 +171,7 @@ function showAPIErrorMsg(error) {
     };
     // オブジェクトが無い場合
     if (!error[0]) {
-        console.log('Error:'.bgRed + ' エラー内容が取得できませんでした'.brightRed);
+        console.log(' Error '.bgRed + ' エラー内容が取得できませんでした'.brightRed);
         return;
     };
     // エラー内容をリストから取得
@@ -181,7 +180,7 @@ function showAPIErrorMsg(error) {
     // リスト内に該当するエラーが無い場合、エラーオブジェクトのメッセージを代入
     if (!msg) msg = error[0].message;
 
-    console.log('Error:'.bgRed + ` ${msg}(${code})`.brightRed);
+    console.log(' Error '.bgRed + ` ${msg}(${code})`.brightRed);
 };
 
 /**
