@@ -56,7 +56,7 @@ function getStrWidth(text) {
 /**
  * 文字列に指定した間隔で文字を挿入（ちょっと怪しい）
  * @param  {String} text   文字列
- * @param  {Number} length 挿入する間隔（全角は2文字）
+ * @param  {Number} length 挿入する間隔（表示幅）
  * @param  {String} add    挿入する文字
  * @return {String}        編集後の文字列
  */
@@ -64,9 +64,9 @@ function insert(text, length, add) {
     let start = 0, result = '', rest = text;    
     while (length < getStrWidth(rest)) {
         result += strCat(text, start, length, false); // 範囲切り出し
-        start = result.length;                    // 次の切り出し位置をズラす
-        result += add;                            // 指定の文字を追加
-        rest = text.slice(start);                 // 残り
+        start = result.length;                        // 次の切り出し位置をズラす
+        result += add;                                // 指定の文字を追加
+        rest = text.slice(start);                     // 残り
     };
     // 残りの文字列を結合
     result += rest;
@@ -104,10 +104,8 @@ function strCat(text, start, length, mode) {
  * @return {String}      編集後の文字列
  */
 function optimizeText(text) {
-    text = text.replace(/　/g, ' '); // 全角スペースを置換
-    text = text.replace(/\n/g, ' '); // 改行コードを置換
-    return text;
-}
+    return text.replace(/　/g, ' ').replace(/\n/g, ' ');
+};
 
 /**
  * 英数字を装飾文字に変換する
@@ -121,8 +119,7 @@ function decorateCharacter(styleType, text) {
         'sansItalic' : { 'upper': 120315, 'lower': 120309, 'degits': 120764 },
         'serif'      : { 'upper': 119743, 'lower': 119737, 'degits': 120734 },
         'serifItalic': { 'upper': 119847, 'lower': 119841, 'degits': 120734 },
-        'script'     : { 'upper': 119951, 'lower': 119945, 'degits':      0 }, 
-        'fraktur'    : { 'upper': 120107, 'lower': 120101, 'degits':      0 }
+        'script'     : { 'upper': 119951, 'lower': 119945, 'degits':      0 }
     };
     const words = split(text);
     let result = '';

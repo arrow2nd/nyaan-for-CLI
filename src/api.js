@@ -190,7 +190,7 @@ async function follow(token, screenName, isRemoved) {
  * @param {String}  screenName ユーザーのスクリーンネーム
  * @param {Boolean} isRemoved  解除するかどうか
  */
-async function block(screenName, isRemoved) {
+async function block(token, screenName, isRemoved) {
     const client = createClient(token);
     const type = (isRemoved) ? 'destroy' : 'create';
     const user = await client.post(`blocks/${type}`, {screen_name: screenName}).catch(err => util.showAPIErrorMsg(err));
@@ -269,7 +269,7 @@ async function getUserTimeline(token, userId, count) {
         return [];
     };
     // 対象ユーザーと自分との関係を取得
-    const connections = await getUserLookup(tweets[0].user.id_str).catch(err => console.error(err));
+    const connections = await getUserLookup(token, tweets[0].user.id_str).catch(err => console.error(err));
     // ツイートを表示
     tw.showTweet(tweets);
     // プロフィールを表示

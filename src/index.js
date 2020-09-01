@@ -25,14 +25,13 @@ async function tweet(tweetId, text, options) {
     // 空文字の場合にゃーんに置き換える
     text = (!text && !path) ? 'にゃーん' : text;
     // 装飾文字の種類
-    if (options.bold) style = 'sans';
-    if (options.italic) style = 'sansItalic';
-    if (options.serifbold) style = 'serif';
+    if (options.bold)        style = 'sans';
+    if (options.italic)      style = 'sansItalic';
+    if (options.serifbold)   style = 'serif';
     if (options.serifitalic) style = 'serifItalic';
-    if (options.script) style = 'script';
-    if (options.fraktur) style = 'fraktur';
+    if (options.script)      style = 'script';
     // 装飾
-    if (style) text = util.decorateCharacter(style, text);
+    if (style) text = util.decorateCharacter(options, text);
     // ツイート
     await api.tweetPost(token, text, path, tweetId).catch(err => console.error(err));
     // プロパティを削除
@@ -112,7 +111,6 @@ program
     .option('-bb, --serifbold', '英数字を装飾します（𝐬𝐚𝐦𝐩𝐥𝐞）')
     .option('-ii, --serifitalic', '英数字を装飾します（𝒔𝒂𝒎𝒑𝒍𝒆）')
     .option('-s, --script', '英数字を装飾します（𝓼𝓪𝓶𝓹𝓵𝓮）')
-    .option('-f, --fraktur', '英数字を装飾します（𝖘𝖆𝖒𝖕𝖑𝖊）')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
     .action(async (text, options) => tweet('', text, options))
     .on('--help', () => {

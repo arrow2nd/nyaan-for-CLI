@@ -28,6 +28,7 @@
 ### 動作環境
 - 文字コードがUTF-8
 - node.jsがうごく
+- ubuntu, archで動作確認しています
 
 ### 1.ダウンロード
 
@@ -37,20 +38,17 @@ zipをダウンロード or ```git clone git@github.com:arrow2nd/tw-nyaan.git```
 
 ```cd tw-nyaan```
 
-### 3.アクセストークンの設定
-
-[ここ](https://developer.twitter.com/en/apps)からコンシューマーキー、コンシューマーシークレット、アクセストークン、アクセストークンシークレットを取得。
-
-.env-exampleファイルを参考に.envファイルを作成する。
-
-### 4.グローバルにインストール
+### 3.グローバルにインストール
 
 (Yarnの場合)
 
 ```yarn global add file:$PWD ``` 
 
-これでおしまい！
+### 4.初期設定
 
+```nyaan```
+
+画面の指示に従って認証してください！
 
 ## 使い方メモ
 
@@ -62,4 +60,3 @@ zipをダウンロード or ```git clone git@github.com:arrow2nd/tw-nyaan.git```
 
 ## 注意
 - （いないとは思いますが）利用される場合は、自己責任でお願いします…
-- .envの取り扱いには十分ご注意ください
