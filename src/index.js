@@ -168,10 +168,10 @@ program
 
 // メンション一覧表示
 program
-    .command('mentionTL [counts]')
-    .alias('mtl')
+    .command('mention [counts]')
+    .alias('m')
     .usage('[取得件数]')
-    .description('自分宛てのメンションを表示します')
+    .description('自分宛てのメンション一覧を表示します')
     .action(async (counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const timeline = await api.getTimeline(token, true, counts).catch(err => console.error(err));
@@ -185,10 +185,10 @@ program
 
 // ユーザータイムライン表示
 program
-    .command('userTL [userId] [counts]')
-    .alias('utl')
+    .command('user [userId] [counts]')
+    .alias('u')
     .usage('[ユーザーID / ツイートの番号] [取得件数]')
-    .description('ユーザーのタイムラインを表示します')
+    .description('ユーザーのツイート一覧を表示します')
     .action(async (userId, counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
         const screenName = getScreenName(userId, false);
@@ -256,7 +256,7 @@ program
 // いいね＆リツイート
 program
     .command('favrt <index>')
-    .alias('frt')
+    .alias('fr')
     .usage('<ツイートの番号>')
     .description('いいねとリツイートをします')
     .action(async (index) => {
