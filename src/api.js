@@ -60,9 +60,14 @@ async function tweetPost(token, tweetText, mediaPaths, replyToPostId) {
         status.in_reply_to_status_id = replyToPostId;
         status.auto_populate_reply_metadata = true;
     };
-    // 画像があればアップロード
+    // 画像をアップロード
     if (mediaPaths) {
-        status.media_ids = await upload(token, mediaPaths)//.catch(err => util.showAPIErrorMsg(err));
+        const mediaIds = await upload(token, mediaPaths).catch(err => util.showAPIErrorMsg(err));
+        if (!mediaIds) {
+            console.error(' Error '.bgRed + ' 画像のアップロードに失敗したため処理を中断しました'.brightRed);
+            return;
+        };
+        status.media_ids = mediaIds;
     };
     // ツイート
     const tweet = await client.post('statuses/update', status).catch(err => util.showAPIErrorMsg(err));
@@ -85,17 +90,15 @@ async function upload(token, mediaPaths) {
 
     for (let i = 0; i < pathLength; i++) {
         const filePath = paths[i].trim();
-        // 画像があるかチェック
-        try {
-            fs.statSync(filePath);
-        } catch(err) {
-            console.error(' Error '.bgRed + ` ファイルが見つかりません (${filePath})`.brightRed);
-            continue;
-        };
-        // 画像ファイルかチェック
+        // 拡張子をチェック
         const ext = path.extname(filePath).toLowerCase();
         if (ext != '.jpg' && ext != '.jpeg' && ext != '.png' && ext != '.gif') {
             console.error(' Error '.bgRed + ` 未対応の拡張子です (${ext})`.brightRed);
+            continue;
+        };
+        // 画像が存在するかチェック
+        if (!fs.existsSync(filePath)) {
+            console.error(' Error '.bgRed + ` ファイルが見つかりません (${filePath})`.brightRed);
             continue;
         };
         // アップロード
@@ -237,9 +240,9 @@ async function getTimeline(token, mentionMode, count) {
     let param = { count: count };
     // TL取得モードの場合はリプライを含めない
     if (!mentionMode) param.exclude_replies = true;
-    // 取得
+    // タイムライン取得
     const tweets = await client.get(`statuses/${type}`, param).catch(err => util.showAPIErrorMsg(err));
-    // データがあるかチェック
+    // データが存在するかチェック
     if (!tweets.length) {
         console.log(' Error '.bgRed + ' データがありません');
         return [];
@@ -261,9 +264,9 @@ async function getUserTimeline(token, userId, count) {
     let param = { count: count };
     // ユーザーIDがあれば追加
     if (userId) param.screen_name = userId.replace(/@|＠/, '');
-    // 取得
+    // タイムライン取得
     const tweets = await client.get('statuses/user_timeline', param).catch(err => util.showAPIErrorMsg(err));
-    // データがあるかチェック
+    // データが存在するかチェック
     if (!tweets.length) {
         console.log(' Error '.bgRed + ' ユーザーがみつかりませんでした...');
         return [];
@@ -286,7 +289,7 @@ async function getUserTimeline(token, userId, count) {
 async function getUserLookup(token, userId) {
     const client = createClient(token);
     let connections = {};
-    // 取得
+    // 関係を取得
     const lookup = await client.get('friendships/lookup', {user_id: userId}).catch(err => util.showAPIErrorMsg(err));
     // 関係を示すオブジェクトを作成
     if (lookup) {
@@ -306,7 +309,7 @@ async function getUserLookup(token, userId) {
  */
 async function searchTweet(token, keyword, count) {
     const client = createClient(token);
-    // 検索
+    // ツイートを検索
     const results = await client.get('search/tweets', {q: `${keyword}  exclude:retweets`, count: count}).catch(err => util.showAPIErrorMsg(err));
     const tweets = results.statuses;
     // データがあるかチェック
