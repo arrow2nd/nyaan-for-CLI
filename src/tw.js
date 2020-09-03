@@ -1,6 +1,7 @@
 'use strict';
 const colors = require('colors');
 const moment = require('moment');
+const eaw = require('eastasianwidth');
 const util = require('./util.js');
 
 /**
@@ -183,7 +184,7 @@ function createFotter(tweet) {
     let via = `via ${tweet.source.slice(start, end)}  `;
     // 投稿時刻とviaを連結
     const postTime = `Posted at ${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}`;
-    textCount = postTime.length + util.getStrWidth(via);
+    textCount = postTime.length + eaw.length(via);
     const fotter = ' '.repeat(width - textCount)  + via.gray + postTime.cyan;    
     return impression + fotter;
 };

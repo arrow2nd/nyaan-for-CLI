@@ -2,6 +2,7 @@
 const readline = require('readline');
 const colors = require('colors');
 const split = require('graphemesplit');
+const eaw = require('eastasianwidth');
 
 /**
  * コンソールからの入力を受け付ける
@@ -36,33 +37,15 @@ function sortTag(array, key) {
 };
 
 /**
- * 文字列の表示幅を取得
- * @param  {String} text テキスト
- * @return {Number}      全角文字を2とした文字列全体の表示幅
- */
-function getStrWidth(text) {
-    let len = 0;
-    const words = split(text);
-    for (let value of words) {
-        if (!value.match(/[^\x01-\x7E]/) || !value.match(/[^\uFF65-\uFF9F]/)) {
-            len ++;
-        } else {
-            len += 2;
-        };
-    };
-    return len;
-};
-
-/**
  * 文字列に指定した間隔で文字を挿入（ちょっと怪しい）
  * @param  {String} text   文字列
- * @param  {Number} length 挿入する間隔（表示幅）
+ * @param  {Number} length 挿入する間隔（半角を1とした表示幅）
  * @param  {String} add    挿入する文字
  * @return {String}        編集後の文字列
  */
 function insert(text, length, add) {
     let start = 0, result = '', rest = text;    
-    while (length < getStrWidth(rest)) {
+    while (length < eaw.length(rest)) {
         result += strCat(text, start, length, false); // 範囲切り出し
         start = result.length;                        // 次の切り出し位置をズラす
         result += add;                                // 指定の文字を追加
@@ -88,7 +71,7 @@ function strCat(text, start, length, mode) {
         const value = words[index];
         if (!value) {
             break;
-        } else if (getStrWidth(value) == 2) {
+        } else if (eaw.length(value) == 2) {
             len--;
         };
         result += value;
@@ -205,7 +188,6 @@ function showCMDErrorMsg(error) {
 module.exports = {
     readlineSync,
     sortTag,
-    getStrWidth,
     insert,
     strCat,
     optimizeText,
