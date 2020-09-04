@@ -5,6 +5,16 @@ const split = require('graphemesplit');
 const eaw = require('eastasianwidth');
 
 /**
+ * 水平線を描画する
+ * @param {boolean} hasPutSpace 左右に1スペースを空けるか
+ */
+function drawHr(hasPutSpace) {
+    const width = process.stdout.columns;
+    const hr = (hasPutSpace) ? ' ' + '-'.repeat(width - 2).grey : '-'.repeat(width);
+    console.log(hr);
+};
+
+/**
  * コンソールからの入力を受け付ける
  * @return {Array} 文字列配列
  */
@@ -186,6 +196,7 @@ function showCMDErrorMsg(error) {
 };
 
 module.exports = {
+    drawHr,
     readlineSync,
     sortTag,
     insert,

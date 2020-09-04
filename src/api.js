@@ -243,12 +243,12 @@ async function getTimeline(token, mentionMode, count) {
     // タイムライン取得
     const tweets = await client.get(`statuses/${type}`, param).catch(err => util.showAPIErrorMsg(err));
     // データが存在するかチェック
-    if (!tweets.length) {
+    if (!tweets || !tweets.length) {
         console.log(' Error '.bgRed + ' データがありません');
         return [];
     };
     // タイムラインを表示
-    tw.showTweet(tweets);
+    tw.showTweets(tweets);
     return tweets;
 };
 
@@ -267,14 +267,14 @@ async function getUserTimeline(token, userId, count) {
     // タイムライン取得
     const tweets = await client.get('statuses/user_timeline', param).catch(err => util.showAPIErrorMsg(err));
     // データが存在するかチェック
-    if (!tweets.length) {
+    if (!tweets || !tweets.length) {
         console.log(' Error '.bgRed + ' ユーザーがみつかりませんでした…');
         return [];
     };
     // 対象ユーザーと自分との関係を取得
     const connections = await getUserLookup(token, tweets[0].user.id_str).catch(err => console.error(err));
     // ツイートを表示
-    tw.showTweet(tweets);
+    tw.showTweets(tweets);
     // プロフィールを表示
     tw.showUserInfo(tweets[0].user, connections);
     return tweets;
@@ -313,12 +313,12 @@ async function searchTweet(token, keyword, count) {
     const results = await client.get('search/tweets', {q: `${keyword}  exclude:retweets`, count: count}).catch(err => util.showAPIErrorMsg(err));
     const tweets = results.statuses;
     // データがあるかチェック
-    if (!tweets.length) {
+    if (!tweets || !tweets.length) {
         console.log(' Error '.bgRed + ' みつかりませんでした…');
         return [];
     };
     // 検索結果を表示
-    tw.showTweet(tweets);
+    tw.showTweets(tweets);
     console.log(' Info '.bgBlue + `「${keyword}」の検索結果です`);
     return tweets;
 };

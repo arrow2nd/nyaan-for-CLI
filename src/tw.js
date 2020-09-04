@@ -12,7 +12,7 @@ const util = require('./util.js');
 function showUserInfo(user, connections) {
     // 画面幅
     const width = process.stdout.columns;
-    // ユーザー名・ユーザーID
+    // ユーザー名・ID
     const userName = createHeader(user);1
     // 場所
     const location = util.optimizeText(user.location);
@@ -31,14 +31,11 @@ function showUserInfo(user, connections) {
     let follower = user.followers_count;
     follower = (connections.following) ? `${follower} ${'[following]'.cyan}` : follower;
     // ブロック・ミュート状況
-    if (connections.blocking) {
-        follower += ' [blocking]'.red;
-    };
-    if (connections.muting) {
-        follower += ' [muting]'.yellow;
-    };
+    if (connections.blocking) follower += ' [blocking]'.red;
+    if (connections.muting)   follower += ' [muting]'.yellow;
     // ツイート数
     const tweetCount = `${user.statuses_count} tweets`;
+
     // 表示
     console.log(`${'='.repeat(width)}\n`.rainbow);
     console.log(`  ${userName}  ${tweetCount.brightCyan}\n`);
@@ -53,42 +50,49 @@ function showUserInfo(user, connections) {
 
 /**
  * ツイートを表示
+ * @param {Number} idx   インデックス
+ * @param {Object} tweet ツイートオブジェクト
+ */
+function showTweet(idx, tweet) {
+    // RTだった場合RT元のツイートに置き換える
+    let rtByUser;
+    if (tweet.retweeted_status) {
+        rtByUser = `RT by ${util.optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`.green;
+        tweet = tweet.retweeted_status;
+    };
+
+    // 表示内容を作成
+    const rpToUser = tweet.in_reply_to_screen_name;
+    const index    = (idx != null) ? ` ${idx} `.black.bgCyan : '';
+    const header   = index + ' ' + createHeader(tweet.user);
+    const postText = formatTweet(tweet);
+    const fotter   = createFotter(tweet);
+
+    // RT by
+    if (rtByUser) console.log(rtByUser);
+    // Reply to
+    if (rpToUser) console.log(`Reply to @${rpToUser}`.brightGreen);
+    // ツイートを表示
+    console.log(header + '\n');
+    console.log(postText);
+    console.log(fotter);
+    // 引用リツイート
+    if (tweet.is_quote_status) {
+        util.drawHr(true);
+        showTweet(null, tweet.quoted_status);
+    };
+};
+
+/**
+ * ツイートをまとめて表示
  * @param {Array} tweets ツイートオブジェクト
  */
-function showTweet(tweets) {
-    // 画面幅
-    const width = process.stdout.columns;
-    // 水平線
-    const hr = '-'.repeat(width);
-    console.log(hr);    
-    // ツイートの解析
-    for (let i = tweets.length - 1;i >= 0;i--) {
-        let tweet = tweets[i];
-        // RTだった場合RT元のツイートに置き換える
-        let rtByUser;
-        if (tweet.retweeted_status) {
-            rtByUser = `RT by ${util.optimizeText(tweet.user.name)} (@${tweet.user.screen_name})`;
-            tweet = tweet.retweeted_status;
-        };
-        // 表示内容を作成
-        const index = ` ${i} `.brightWhite.bgBrightBlue;
-        const header = index + ' ' + createHeader(tweet.user);
-        const postText = formatTweet(tweet);
-        const fotter = createFotter(tweet);
-        // RTの表示
-        if (rtByUser) {
-            console.log(rtByUser.green);
-        };
-        // リプライの表示
-        let rpToUser = tweet.in_reply_to_screen_name;
-        if (rpToUser) {
-            console.log(`Reply to @${rpToUser}`.brightGreen);
-        };
-        // ツイートを表示
-        console.log(header + '\n');
-        console.log(postText);
-        console.log(fotter);
-        console.log(hr);
+function showTweets(tweets) {
+    util.drawHr(false);
+    for (let i = tweets.length - 1; i >= 0; i--) {
+        const tweet = tweets[i]; 
+        showTweet(i, tweet);
+        util.drawHr(false);
     };
 };
 
@@ -100,23 +104,19 @@ function showTweet(tweets) {
 function createHeader(user) {
     // ユーザー情報
     const userName = util.optimizeText(user.name);
-    const userId = `  @${user.screen_name}`;
+    const userId = ` (@${user.screen_name})`;
     let badge = '';
     // 公式アカウント
-    if (user.verified) {
-        badge += ' [verified]'.cyan;
-    };
+    if (user.verified)  badge += ' [verified]'.cyan;
     // 鍵アカウント
-    if (user.protected) {
-        badge += ' [private]'.gray;
-    };
-    // 連結
-    const header = userName.bold + userId.dim + badge;
+    if (user.protected) badge += ' [private]'.dim;
+
+    const header = userName.bold + userId.gray + badge;
     return header;
 };
 
 /**
- * ツイート内容を整形する
+ * ツイート内容を整形
  * @param  {Object} tweet ツイートオブジェクト
  * @return {String}       ツイート内容
  */
@@ -125,6 +125,7 @@ function formatTweet(tweet) {
     const post = tweet.text;
     let result = '';
     let posts = post.split('\n');
+
     // 一行に収まらない場合、折り返す
     for (let text of posts) {
         text = util.optimizeText(text);
@@ -151,6 +152,7 @@ function formatTweet(tweet) {
             result = result.replace(regex, '#'.brightCyan + text.brightCyan);
         };
     };
+
     return result;
 };
 
@@ -162,6 +164,7 @@ function formatTweet(tweet) {
 function createFotter(tweet) {
     const width = process.stdout.columns;
     let textCount = 0;
+
     // いいね
     const favCount = tweet.favorite_count;
     let favText = '';
@@ -179,7 +182,8 @@ function createFotter(tweet) {
         rtText = (tweet.retweeted) ? ` ${rtText.black.bgBrightGreen} ` : ` ${rtText.brightGreen} `;
     };
     // いいねとRTを連結
-    const impression = (textCount) ? ' '.repeat(width - textCount) + `${favText}${rtText}\n` : '';   
+    const impression = (textCount) ? ' '.repeat(width - textCount) + `${favText}${rtText}\n` : '';
+
     // via
     const start = tweet.source.indexOf('>') + 1;
     const end = tweet.source.indexOf('</a>');
@@ -187,11 +191,12 @@ function createFotter(tweet) {
     // 投稿時刻とviaを連結
     const postTime = `Posted at ${moment(new Date(tweet.created_at)).format('YYYY/MM/DD HH:mm:ss')}`;
     textCount = postTime.length + eaw.length(via);
+
     const fotter = ' '.repeat(width - textCount)  + via.gray + postTime.cyan;    
     return impression + fotter;
 };
 
 module.exports = {
-    showTweet,
+    showTweets,
     showUserInfo
 };
