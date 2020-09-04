@@ -1,4 +1,6 @@
 'use strict';
+const fs = require('fs');
+const path = require('path');
 const readline = require('readline');
 const colors = require('colors');
 const split = require('graphemesplit');
@@ -195,6 +197,19 @@ function showCMDErrorMsg(error) {
     process.exit(1);
 };
 
+/**
+ * 設定データ削除
+ */
+function deleteConfig() {
+    try {
+        fs.unlinkSync(path.join(__dirname, '../config/config.json'));
+        console.log(' Success '.bgGreen + ' 削除しました'.brightGreen);
+    } catch (err) {
+        console.error(err);
+        console.log('Error '.bgRed + ' 削除できませんでした'.brightRed);
+    };
+};
+
 module.exports = {
     drawHr,
     readlineSync,
@@ -204,5 +219,6 @@ module.exports = {
     optimizeText,
     decorateCharacter,
     showAPIErrorMsg,
-    showCMDErrorMsg
+    showCMDErrorMsg,
+    deleteConfig
 };

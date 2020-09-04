@@ -330,6 +330,12 @@ program
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます');
     });
 
+// 設定の削除
+program
+    .command('init')
+    .description('認証データを削除します')
+    .action(() => util.deleteConfig())
+
 // 終了
 program
     .command('exit')

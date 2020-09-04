@@ -314,7 +314,7 @@ async function searchTweet(token, keyword, count) {
     const tweets = results.statuses;
     // データがあるかチェック
     if (!tweets || !tweets.length) {
-        console.log(' Error '.bgRed + ' みつかりませんでした…');
+        console.log(' Error '.bgRed + ' みつかりませんでした…'.bgBrightRed);
         return [];
     };
     // 検索結果を表示
