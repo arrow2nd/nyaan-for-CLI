@@ -268,7 +268,7 @@ async function getUserTimeline(token, userId, count) {
     const tweets = await client.get('statuses/user_timeline', param).catch(err => util.showAPIErrorMsg(err));
     // データが存在するかチェック
     if (!tweets.length) {
-        console.log(' Error '.bgRed + ' ユーザーがみつかりませんでした...');
+        console.log(' Error '.bgRed + ' ユーザーがみつかりませんでした…');
         return [];
     };
     // 対象ユーザーと自分との関係を取得
@@ -314,7 +314,7 @@ async function searchTweet(token, keyword, count) {
     const tweets = results.statuses;
     // データがあるかチェック
     if (!tweets.length) {
-        console.log(' Error '.bgRed + ' みつかりませんでした...');
+        console.log(' Error '.bgRed + ' みつかりませんでした…');
         return [];
     };
     // 検索結果を表示
