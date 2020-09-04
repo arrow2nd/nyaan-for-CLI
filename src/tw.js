@@ -137,7 +137,8 @@ function formatTweet(tweet) {
         mentions = util.sortTag(mentions, 'screen_name');
         for (let mention of mentions) {
             const text = mention.screen_name;
-            result = result.replace(`@${text}`, '@'.brightGreen + text.brightGreen);
+            const regex = new RegExp(`@${text}|＠${text}`, 'g');
+            result = result.replace(regex, '@'.brightGreen + text.brightGreen);
         };
     };
     // ハッシュタグをハイライト (途中で改行されると無力)
@@ -146,7 +147,8 @@ function formatTweet(tweet) {
         hashtags = util.sortTag(hashtags, 'text');
         for (let tag of hashtags) {
             const text = tag.text;
-            result = result.replace(`#${text}`, '#'.brightCyan + text.brightCyan);
+            const regex = new RegExp(`#${text}|＃${text}`, 'g');
+            result = result.replace(regex, '#'.brightCyan + text.brightCyan);
         };
     };
     return result;
