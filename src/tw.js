@@ -54,6 +54,9 @@ function showUserInfo(user, connections) {
  * @param {Object} tweet ツイートオブジェクト
  */
 function showTweet(idx, tweet) {
+    // データがあるか確認
+    if (!tweet) return;
+
     // RTだった場合RT元のツイートに置き換える
     let rtByUser;
     if (tweet.retweeted_status) {
@@ -77,7 +80,7 @@ function showTweet(idx, tweet) {
     console.log(postText);
     console.log(fotter);
     // 引用リツイート
-    if (tweet.is_quote_status) {
+    if (tweet.is_quote_status && tweet.quoted_status) {
         util.drawHr(true);
         showTweet(null, tweet.quoted_status);
     };
