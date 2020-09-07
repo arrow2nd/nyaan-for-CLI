@@ -54,8 +54,8 @@ function showUserInfo(user, connections) {
  * @param {Object} tweet ツイートオブジェクト
  */
 function showTweet(idx, tweet) {
-    // データがあるか確認
     if (!tweet) return;
+    const isQT = (idx == null) ? true : false;
 
     // RTだった場合RT元のツイートに置き換える
     let rtByUser;
@@ -66,15 +66,15 @@ function showTweet(idx, tweet) {
 
     // 表示内容を作成
     const rpToUser = tweet.in_reply_to_screen_name;
-    const index    = (idx != null) ? ` ${idx} `.black.bgCyan : '';
+    const index    = (isQT) ? '' : ` ${idx} `.black.bgCyan;
     const header   = index + ' ' + createHeader(tweet.user);
     const postText = formatTweet(tweet);
     const fotter   = createFotter(tweet);
 
     // RT by
-    if (rtByUser) console.log(rtByUser);
+    if (rtByUser) console.log((isQT ? ' ' : '') + rtByUser);
     // Reply to
-    if (rpToUser) console.log(`Reply to @${rpToUser}`.brightGreen);
+    if (rpToUser) console.log((isQT ? ' ' : '') + `Reply to @${rpToUser}`.brightGreen);
     // ツイートを表示
     console.log(header + '\n');
     console.log(postText);
