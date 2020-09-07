@@ -5,7 +5,6 @@ const chalk = require('chalk');
 const readline = require('readline');
 const split = require('graphemesplit');
 const meaw = require('meaw');
-
 const color = require('../config/color.json');
 
 /**
@@ -83,20 +82,6 @@ function readlineSync() {
             rl.close();
             resolve(input.split(' '));
         });
-    });
-};
-
-/**
- * タグを降順でソート
- * @param  {Array}  array 文字列配列
- * @param  {String} key   比較する要素のキー
- * @return {Array}        ソートした文字列配列
- */
-function sortTag(array, key) {
-    return array.sort((a,b) => {
-        if (a[key].length > b[key].length) return -1;
-        if (a[key].length < b[key].length) return 1;
-        return 0;
     });
 };
 
@@ -269,7 +254,6 @@ module.exports = {
     loadTextFile,
     drawHr,
     readlineSync,
-    sortTag,
     insert,
     strCat,
     optimizeText,

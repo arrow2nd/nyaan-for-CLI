@@ -138,20 +138,20 @@ function formatTweet(tweet) {
     // メンションをハイライト (途中で改行されると無力)
     let mentions = tweet.entities.user_mentions;
     if (mentions) {
-        mentions = util.sortTag(mentions, 'screen_name');
+        result = result.replace(/@/g, '＠');
         for (let mention of mentions) {
             const text = mention.screen_name;
-            const regex = new RegExp(`@${text}|＠${text}`, 'g');
+            const regex = new RegExp(`＠${text}`);
             result = result.replace(regex, chalk.hex(color.ui.reply)(`@${text}`));
         };
     };
     // ハッシュタグをハイライト (途中で改行されると無力)
     let hashtags = tweet.entities.hashtags;
     if (hashtags) {
-        hashtags = util.sortTag(hashtags, 'text');
+        result = result.replace(/#/g, '＃');
         for (let tag of hashtags) {
             const text = tag.text;
-            const regex = new RegExp(`#${text}|＃${text}`, 'g');
+            const regex = new RegExp(`＃${text}`);
             result = result.replace(regex, chalk.hex(color.ui.hash)(`#${text}`));
         };
     };
