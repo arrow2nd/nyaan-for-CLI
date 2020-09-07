@@ -328,7 +328,7 @@ async function searchTweet(token, keyword, count) {
 //-------------------------------------------------------------------------
 
 /**
- * ツイートのインデックスからIDを取得する
+ * ツイートのインデックスからツイートIDを取得
  * @param  {Array}  tl    タイムライン
  * @param  {Number} index ツイートのインデックス
  * @return {String}       ツイートID

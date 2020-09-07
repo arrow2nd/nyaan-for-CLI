@@ -7,6 +7,20 @@ const split = require('graphemesplit');
 const eaw = require('eastasianwidth');
 
 /**
+ * ファイルをテキストとして読み込む
+ * @param  {String} fpath パス
+ * @return {String}       ファイルの内容
+ */
+function loadTextFile(fpath) {
+    // 存在するかチェック
+    if (!fs.existsSync(fpath)) {
+        console.log(' Error '.bgRed + ` ファイルが見つかりません(${fpath})`.brightRed);
+        return;
+    };
+    return fs.readFileSync(fpath, 'utf8');
+};
+
+/**
  * 水平線を描画する
  * @param {boolean} hasPutSpace 左右に1スペースを空けるか
  */
@@ -104,20 +118,22 @@ function optimizeText(text) {
 
 /**
  * 英数字を装飾文字に変換する
- * @param  {String} styleType 文字種類
- * @param  {String} text      文字列
- * @return {String}           編集後の文字列
+ * @param  {Object} options オプションオブジェクト
+ * @param  {String} text    文字列
+ * @return {String}         編集後の文字列
  */
-function decorateCharacter(styleType, text) {
-    const styles = {
-        'sans'       : { 'upper': 120211, 'lower': 120205, 'degits': 120764 },
-        'sansItalic' : { 'upper': 120315, 'lower': 120309, 'degits': 120764 },
-        'serif'      : { 'upper': 119743, 'lower': 119737, 'degits': 120734 },
-        'serifItalic': { 'upper': 119847, 'lower': 119841, 'degits': 120734 },
-        'script'     : { 'upper': 119951, 'lower': 119945, 'degits':      0 }
-    };
+function decorateCharacter(options, text) {
     const words = split(text);
+    let style = {};
     let result = '';
+
+    // 装飾文字
+    if (options.bold)        style = { 'upper': 120211, 'lower': 120205, 'degits': 120764 };
+    if (options.italic)      style = { 'upper': 120315, 'lower': 120309, 'degits': 120764 };
+    if (options.serifbold)   style = { 'upper': 119743, 'lower': 119737, 'degits': 120734 };
+    if (options.serifitalic) style = { 'upper': 119847, 'lower': 119841, 'degits': 120734 };
+    if (options.script)      style = { 'upper': 119951, 'lower': 119945, 'degits':      0 };
+
     // １文字ずつ処理
     for (let word of words) {
         if (word.match(/[^A-Za-z0-9]/)) {
@@ -127,11 +143,11 @@ function decorateCharacter(styleType, text) {
         // 装飾を反映
         let codePoint = word.codePointAt(0);
         if (word.match(/[A-Z]/)) {
-            codePoint += styles[styleType].upper;
+            codePoint += style.upper;
         } else if (word.match(/[a-z]/)) {
-            codePoint += styles[styleType].lower;
+            codePoint += style.lower;
         } else {
-            codePoint += styles[styleType].degits;
+            codePoint += style.degits;
         };
         // 出力
         result += String.fromCodePoint(codePoint);
@@ -163,7 +179,7 @@ function showAPIErrorMsg(error) {
     };
     // オブジェクトが無い場合
     if (!error[0]) {
-        console.log(' Error '.bgRed + ' エラー内容が取得できませんでした'.brightRed);
+        console.error(' Error '.bgRed + ' エラー内容が取得できませんでした'.brightRed);
         return;
     };
     // エラー内容をリストから取得
@@ -172,7 +188,7 @@ function showAPIErrorMsg(error) {
     // リスト内に該当するエラーが無い場合、エラーオブジェクトのメッセージを代入
     if (!msg) msg = error[0].message;
 
-    console.log(' Error '.bgRed + ` ${msg}(${code})`.brightRed);
+    console.error(' Error '.bgRed + ` ${msg}(${code})`.brightRed);
 };
 
 /**
@@ -193,7 +209,7 @@ function showCMDErrorMsg(error) {
             return;
         };
     };
-    console.log(error);
+    console.error(error);
     process.exit(1);
 };
 
@@ -206,11 +222,12 @@ function deleteConfig() {
         console.log(' Success '.bgGreen + ' 削除しました'.brightGreen);
     } catch (err) {
         console.error(err);
-        console.log('Error '.bgRed + ' 削除できませんでした'.brightRed);
+        console.error('Error '.bgRed + ' 削除できませんでした'.brightRed);
     };
 };
 
 module.exports = {
+    loadTextFile,
     drawHr,
     readlineSync,
     sortTag,

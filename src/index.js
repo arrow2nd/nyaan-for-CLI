@@ -21,27 +21,27 @@ let displayingTweets = [];
  */
 async function tweet(tweetId, text, options) {
     const path = options.media || '';
-    let style = '';
+    // テキストファイルを読み込む
+    if (options.load) {
+        text = util.loadTextFile(options.load);
+        if (!text) return;
+    };
     // 空文字の場合にゃーんに置き換える
     text = (!text && !path) ? 'にゃーん' : text;
-    // 装飾文字の種類
-    if (options.bold)        style = 'sans';
-    if (options.italic)      style = 'sansItalic';
-    if (options.serifbold)   style = 'serif';
-    if (options.serifitalic) style = 'serifItalic';
-    if (options.script)      style = 'script';
-    // 装飾
-    if (style) text = util.decorateCharacter(options, text);
+    // 装飾文字
+    if (options.bold || options.italic || options.serifbold || options.serifitaric || options.script) {
+        text = util.decorateCharacter(options, text);
+    };
     // ツイート
     await api.tweetPost(token, text, path, tweetId).catch(err => console.error(err));
     // プロパティを削除
-    delete options.media;
     delete options.bold;
     delete options.italic;
     delete options.serifbold;
     delete options.serifitaric;
     delete options.script;
-    delete options.fraktur;
+    delete options.media;
+    delete options.load;
 };
 
 /**
@@ -108,10 +108,11 @@ program
     .description('ツイートします')
     .option('-b, --bold', '英数字を装飾します（𝘀𝗮𝗺𝗽𝗹𝗲）')
     .option('-i, --italic', '英数字を装飾します（𝙨𝙖𝙢𝙥𝙡𝙚）')
-    .option('-bb, --serifbold', '英数字を装飾します（𝐬𝐚𝐦𝐩𝐥𝐞）')
-    .option('-ii, --serifitalic', '英数字を装飾します（𝒔𝒂𝒎𝒑𝒍𝒆）')
-    .option('-s, --script', '英数字を装飾します（𝓼𝓪𝓶𝓹𝓵𝓮）')
+    .option('-sb, --serifbold', '英数字を装飾します（𝐬𝐚𝐦𝐩𝐥𝐞）')
+    .option('-si, --serifitalic', '英数字を装飾します（𝒔𝒂𝒎𝒑𝒍𝒆）')
+    .option('-sc, --script', '英数字を装飾します（𝓼𝓪𝓶𝓹𝓵𝓮）')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
+    .option('-l, --load <path>', 'ファイルの内容をテキストとしてツイートします')
     .action(async (text, options) => tweet('', text, options))
     .on('--help', () => {
         console.log('\nTips:');
@@ -124,7 +125,13 @@ program
     .alias('rp')
     .usage('<ツイートの番号> [テキスト]')
     .description('リプライします')
+    .option('-b, --bold', '英数字を装飾します（𝘀𝗮𝗺𝗽𝗹𝗲）')
+    .option('-i, --italic', '英数字を装飾します（𝙨𝙖𝙢𝙥𝙡𝙚）')
+    .option('-sb, --serifbold', '英数字を装飾します（𝐬𝐚𝐦𝐩𝐥𝐞）')
+    .option('-si, --serifitalic', '英数字を装飾します（𝒔𝒂𝒎𝒑𝒍𝒆）')
+    .option('-sc, --script', '英数字を装飾します（𝓼𝓪𝓶𝓹𝓵𝓮）')
     .option('-m, --media <path>', '画像を添付します (複数ある場合は,で区切ってね)')
+    .option('-l, --load <path>', 'ファイルの内容をテキストとしてツイートします')
     .action(async (index, text, options) => {
         const tweetId = api.getTweetId(displayingTweets, index);
         if (tweetId) {
@@ -144,9 +151,8 @@ program
     .description('ツイートを削除します')
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
-        if (tweetId) {
-            await api.deleteTweet(token, tweetId).catch(err => console.error(err));
-        };
+        if (!tweetId) return;
+        await api.deleteTweet(token, tweetId).catch(err => console.error(err));
     });
 
 // タイムライン表示
@@ -231,9 +237,8 @@ program
     .action(async (index, options) => {
         const isRemoved = (options.remove) ? true : false;
         const tweetId = api.getTweetId(displayingTweets, index);
-        if (tweetId) {
-            await api.favorite(token, tweetId, isRemoved).catch(err => console.error(err));
-        };
+        if (!tweetId) return;
+        await api.favorite(token, tweetId, isRemoved).catch(err => console.error(err));
         delete options.remove;
     });
 
@@ -247,9 +252,8 @@ program
     .action(async (index, options) => {
         const isRemoved = (options.remove) ? true : false;
         const tweetId = api.getTweetId(displayingTweets, index);
-        if (tweetId) {
-            await api.retweet(token, tweetId, isRemoved).catch(err => console.error(err));
-        };
+        if (!tweetId) retuen;
+        await api.retweet(token, tweetId, isRemoved).catch(err => console.error(err));
         delete options.remove;
     });
 
@@ -261,10 +265,9 @@ program
     .description('いいねとリツイートをします')
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
-        if (tweetId) {
-            await api.favorite(token, tweetId, false).catch(err => console.error(err));
-            await api.retweet(token, tweetId, false).catch(err => console.error(err));
-        };
+        if (!tweetId) retuen;
+        await api.favorite(token, tweetId, false).catch(err => console.error(err));
+        await api.retweet(token, tweetId, false).catch(err => console.error(err));
     });
 
 // フォローの操作
@@ -277,9 +280,8 @@ program
     .action(async (userId, options) => {
         const isRemoved = (options.remove) ? true : false;
         const screenName = getScreenName(userId, true);
-        if (screenName) {
-            await api.follow(token, screenName, isRemoved).catch(err => console.error(err));
-        };
+        if (!screenName) return;
+        await api.follow(token, screenName, isRemoved).catch(err => console.error(err));
         delete options.remove;
     })
     .on('--help', () => {
@@ -298,9 +300,8 @@ program
     .action(async (userId, options) => {
         const isRemoved = (options.remove) ? true : false;
         const screenName = getScreenName(userId, true);
-        if (screenName) {
-            await api.block(token, screenName, isRemoved).catch(err => console.error(err));
-        };
+        if (!screenName) return;
+        await api.block(token, screenName, isRemoved).catch(err => console.error(err));
         delete options.remove;
     })
     .on('--help', () => {
@@ -319,9 +320,8 @@ program
     .action(async (userId, options) => {
         const isRemoved = (options.remove) ? true : false;
         const screenName = getScreenName(userId, true);
-        if (screenName) {
-            await api.mute(token, screenName, isRemoved).catch(err => console.error(err));
-        };
+        if (!screenName) return;
+        await api.mute(token, screenName, isRemoved).catch(err => console.error(err));
         delete options.remove;
     })
     .on('--help', () => {
