@@ -1,10 +1,47 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const chalk = require('chalk');
 const readline = require('readline');
-const colors = require('colors');
 const split = require('graphemesplit');
 const eaw = require('eastasianwidth');
+const color = require('../config/color.json');
+
+/**
+ * メッセージを表示
+ * @param {String|Object} type メッセージの種類、タイトル
+ * @param {String}        text 内容
+ */
+function info(type, text) {
+    let title;
+    // タイトル
+    switch (type) {
+        case 'e':
+            title = chalk.black.bgHex(color.sys.error)(' Error ');
+            break;
+        case 'i':
+            title = chalk.black.bgHex(color.sys.info)(' Info ');
+            break;
+        case 's':
+            title = chalk.black.bgHex(color.sys.success)(' Success ');
+            break;
+        default:
+            title = type
+    };
+    // メッセージ
+    switch (type) {
+        case 'e':
+            text = chalk.hex(color.sys.error)(text);
+            break;
+        case 'i':
+            text = chalk.hex(color.sys.info)(text);
+            break;
+        case 's':
+            text = chalk.hex(color.sys.success)(text);
+            break;
+    };
+    console.log(title + ' ' + text);
+};
 
 /**
  * ファイルをテキストとして読み込む
@@ -14,7 +51,7 @@ const eaw = require('eastasianwidth');
 function loadTextFile(fpath) {
     // 存在するかチェック
     if (!fs.existsSync(fpath)) {
-        console.log(' Error '.bgRed + ` ファイルが見つかりません(${fpath})`.brightRed);
+        info('e', `ファイルが見つかりません(${fpath})`);
         return;
     };
     return fs.readFileSync(fpath, 'utf8');
@@ -26,7 +63,7 @@ function loadTextFile(fpath) {
  */
 function drawHr(hasPutSpace) {
     const width = process.stdout.columns;
-    const hr = (hasPutSpace) ? ' ' + '-'.repeat(width - 2).grey : '-'.repeat(width);
+    const hr = (hasPutSpace) ? ' ' + chalk.grey('-'.repeat(width - 2)) : '-'.repeat(width);
     console.log(hr);
 };
 
@@ -41,7 +78,7 @@ function readlineSync() {
             output: process.stdout
         });
         // 入力受付
-        rl.question('>'.white + '> '.cyan, (input) => {
+        rl.question('>' + chalk.cyan('> '), (input) => {
             rl.close();
             resolve(input.split(' '));
         });
@@ -179,7 +216,7 @@ function showAPIErrorMsg(error) {
     };
     // オブジェクトが無い場合
     if (!error[0]) {
-        console.error(' Error '.bgRed + ' エラー内容が取得できませんでした'.brightRed);
+        info('e', 'エラー内容が取得できませんでした');
         return;
     };
     // エラー内容をリストから取得
@@ -188,7 +225,7 @@ function showAPIErrorMsg(error) {
     // リスト内に該当するエラーが無い場合、エラーオブジェクトのメッセージを代入
     if (!msg) msg = error[0].message;
 
-    console.error(' Error '.bgRed + ` ${msg}(${code})`.brightRed);
+    info('e', `${msg}(${code})`);
 };
 
 /**
@@ -219,14 +256,15 @@ function showCMDErrorMsg(error) {
 function deleteConfig() {
     try {
         fs.unlinkSync(path.join(__dirname, '../config/config.json'));
-        console.log(' Success '.bgGreen + ' 削除しました'.brightGreen);
+        info('s', '削除しました');
     } catch (err) {
         console.error(err);
-        console.error('Error '.bgRed + ' 削除できませんでした'.brightRed);
+        info('e', '削除できませんでした');
     };
 };
 
 module.exports = {
+    info,
     loadTextFile,
     drawHr,
     readlineSync,

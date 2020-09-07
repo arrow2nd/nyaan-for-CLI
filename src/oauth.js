@@ -1,7 +1,6 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const colors = require('colors');
 const OAuth = require('oauth').OAuth;
 const util = require('./util.js');
 const nyaan = require('../config/nyaan.json');
@@ -35,7 +34,7 @@ async function authenticate() {
     console.log('                                             /$$  | $$                              ');
     console.log('                                            |  $$$$$$/                              ');
     console.log('                                             \\______/                               \n');
-    console.log(' Info '.bgBlue + ' 以下のURLにアクセスして、表示されたPINコードを入力してください\n');
+    util.info('i', '以下のURLにアクセスして、表示されたPINコードを入力してください\n');
 
     // 認証URL
     console.log(oauthToken.oauthURL + '\n');
@@ -45,7 +44,7 @@ async function authenticate() {
 
     // アクセストークンを保存
     const accessToken = await getAccessToken(oauthToken, pin).catch((err) => {
-        console.error(' Error '.bgRed + ` ${err.data}`);
+        util.info('e', err.data);
         process.exit(1);
     });
     fs.writeFileSync(path.join(__dirname, '../config/config.json'), JSON.stringify(accessToken));

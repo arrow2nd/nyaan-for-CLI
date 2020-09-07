@@ -1,12 +1,13 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const colors = require('colors');
+const chalk = require('chalk');
 const Twitter = require('twitter');
 const tw = require('./tw.js');
 const util = require('./util.js');
 const oauth = require('./oauth.js');
 const nyaan = require('../config/nyaan.json');
+const color = require('../config/color.json');
 
 //-------------------------------------------------------------------------
 //  認証のあれこれ
@@ -64,7 +65,7 @@ async function tweetPost(token, tweetText, mediaPaths, replyToPostId) {
     if (mediaPaths) {
         const mediaIds = await upload(token, mediaPaths).catch(err => util.showAPIErrorMsg(err));
         if (!mediaIds) {
-            console.error(' Error '.bgRed + ' 画像のアップロードに失敗したため処理を中断しました'.brightRed);
+            util.info('e', '画像のアップロードに失敗したため処理を中断しました');
             return;
         };
         status.media_ids = mediaIds;
@@ -73,7 +74,7 @@ async function tweetPost(token, tweetText, mediaPaths, replyToPostId) {
     const tweet = await client.post('statuses/update', status).catch(err => util.showAPIErrorMsg(err));
     // 完了
     if (!tweet) return;
-    console.log(action.bgBlue + ` ${tweet.text}`);
+    util.info(chalk.black.bgHex(color.ui.tweet)(action), tweet.text);
 };
 
 /**
@@ -93,12 +94,12 @@ async function upload(token, mediaPaths) {
         // 拡張子をチェック
         const ext = path.extname(filePath).toLowerCase();
         if (ext != '.jpg' && ext != '.jpeg' && ext != '.png' && ext != '.gif') {
-            console.error(' Error '.bgRed + ` 未対応の拡張子です (${ext})`.brightRed);
+            util.info('e', `未対応の拡張子です (${ext})`);
             continue;
         };
         // 画像が存在するかチェック
         if (!fs.existsSync(filePath)) {
-            console.error(' Error '.bgRed + ` ファイルが見つかりません (${filePath})`.brightRed);
+            util.info('e', `ファイルが見つかりません (${filePath})`);
             continue;
         };
         // アップロード
@@ -107,13 +108,13 @@ async function upload(token, mediaPaths) {
         try {
             media = await client.post('media/upload', {media: file});
         } catch(err) {
-            console.error(' Error '.bgRed + `アップロードに失敗しました (${filePath})`.brightRed);
+            util.info('e', `アップロードに失敗しました (${filePath})`);
             continue;
         };
         // メディアIDを記録
         mediaIds += media.media_id_string + ',';
         // 完了
-        console.log(' Success '.bgGreen + ` アップロードしました！(${filePath})`.brightGreen);
+        util.info('s', `アップロードしました！(${filePath})`);
     };
     return mediaIds;
 };
@@ -130,7 +131,7 @@ async function deleteTweet(token, tweetId) {
     if (!tweet) return;
     const width = process.stdout.columns - 12;
     const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
-    console.log(' Deleted '.bgBlue + ` ${text}`);
+    util.info(chalk.black.bgHex(color.ui.tweet)(' Deleted '), text);
 };
 
 /**
@@ -148,7 +149,7 @@ async function favorite(token, tweetId, isRemoved) {
     const msg = (isRemoved) ? ' Un-liked ' : ' Liked ';
     const width = process.stdout.columns - msg.length - 3;
     const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
-    console.log(msg.bgBrightMagenta + ` ${text}`);
+    util.info(chalk.black.bgHex(color.ui.fav)(msg), text);
 };
 
 /**
@@ -166,7 +167,7 @@ async function retweet(token, tweetId, isRemoved) {
     const msg = (isRemoved) ? ' Un-retweeted ' : ' Retweeted ';
     const width = process.stdout.columns - msg.length - 3;
     const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
-    console.log(msg.black.bgBrightGreen + ` ${text}`);
+    util.info(chalk.black.bgGHex(color.ui.rt)(msg), text);
 };
 
 /**
@@ -184,7 +185,7 @@ async function follow(token, screenName, isRemoved) {
     const msg = (isRemoved) ? ' Un-followed ' : ' Followed ';
     const width = process.stdout.columns - msg.length - 3;
     const text = util.strCat(util.optimizeText(user.name), 0, width, true);
-    console.log(msg.bgBlue + ` ${text}`);
+    util.info(chalk.black.bgHex(color.ui.follow)(msg), text);
 };
 
 /**
@@ -202,7 +203,7 @@ async function block(token, screenName, isRemoved) {
     const msg = (isRemoved) ? ' Un-blocked ' : ' Blocked ';
     const width = process.stdout.columns - msg.length - 3;
     const text = util.strCat(util.optimizeText(user.name), 0, width, true);
-    console.log(msg.bgRed + ` ${text}`);
+    util.info(chalk.black.bgHex(color.ui.block)(msg), text);
 };
 
 /**
@@ -220,7 +221,7 @@ async function mute(token, screenName, isRemoved) {
     const msg = (isRemoved) ? ' Un-muted ' : ' Muted ';
     const width = process.stdout.columns - msg.length - 3;
     const text = util.strCat(util.optimizeText(user.name), 0, width, true);
-    console.log(msg.black.bgYellow + ` ${text}`);
+    util.info(chalk.black.bgHex(color.ui.mute)(msg), text);
 };
 
 //-------------------------------------------------------------------------
@@ -244,7 +245,7 @@ async function getTimeline(token, mentionMode, count) {
     const tweets = await client.get(`statuses/${type}`, param).catch(err => util.showAPIErrorMsg(err));
     // データが存在するかチェック
     if (!tweets || !tweets.length) {
-        console.log(' Error '.bgRed + ' データがありません');
+        util.info('e', 'データがありません');
         return [];
     };
     // タイムラインを表示
@@ -268,7 +269,7 @@ async function getUserTimeline(token, userId, count) {
     const tweets = await client.get('statuses/user_timeline', param).catch(err => util.showAPIErrorMsg(err));
     // データが存在するかチェック
     if (!tweets || !tweets.length) {
-        console.log(' Error '.bgRed + ' ユーザーがみつかりませんでした…');
+        util.info('e', 'ユーザーがみつかりませんでした…');
         return [];
     };
     // 対象ユーザーと自分との関係を取得
@@ -314,12 +315,12 @@ async function searchTweet(token, keyword, count) {
     const tweets = results.statuses;
     // データがあるかチェック
     if (!tweets || !tweets.length) {
-        console.log(' Error '.bgRed + ' みつかりませんでした…'.bgBrightRed);
+        util.info('e', 'みつかりませんでした…');
         return [];
     };
     // 検索結果を表示
     tw.showTweets(tweets);
-    console.log(' Info '.bgBlue + `「${keyword}」の検索結果です`);
+    util.info('i', `「${keyword}」の検索結果です`);
     return tweets;
 };
 
@@ -336,12 +337,12 @@ async function searchTweet(token, keyword, count) {
 function getTweetId(tl, index) {
     // 数値か検証
     if (!index || isNaN(index)) {
-        console.error(' Error '.bgRed + ' インデックスが不正です'.brightRed);
+        util.info('e', 'インデックスが不正です');
         return '';
     };
     // インデックスが存在するか検証
     if (index > tl.length - 1) {
-        console.error(' Error '.bgRed + ' ツイートが存在しません'.brightRed);
+        util.info('e', 'ツイートが存在しません');
         return '';
     };
     return tl[index].id_str;
@@ -360,7 +361,7 @@ function getScreenName(tl, index, isGetRtUser) {
     index = Number(index);
     // インデックスが存在するか検証
     if (index > tl.length - 1) {
-        console.error(' Error '.bgRed + ' ツイートが存在しません'.brightRed);
+        util.info('e', 'ツイートが存在しません');
         return '';
     };
     // 対象のツイートを取得
