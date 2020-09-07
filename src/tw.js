@@ -13,7 +13,7 @@ function showUserInfo(user, connections) {
     // 画面幅
     const width = process.stdout.columns;
     // ユーザー名・ID
-    const userName = createHeader(user);1
+    const userName = createHeader(user);
     // 場所
     const location = util.optimizeText(user.location);
     // 説明
