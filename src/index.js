@@ -45,21 +45,6 @@ async function tweet(tweetId, text, options) {
 };
 
 /**
- * スクリーンネームを取得
- * @param {*}       userId         スクリーンネームもしくはツイートのインデックス
- * @param {Boolean} hasModifyValue 無効な値を0に修正するか
- */
-function getScreenName(userId, hasModifyValue) {
-    // 無効な値を0に修正
-    userId = (!hasModifyValue || userId) ? userId : '0';
-    // インデックスが指定されている場合、対象ツイートのスクリーンネームに置き換える
-    if (!isNaN(userId)) {
-        userId = api.getUserId(displayingTweets, Number(userId), 0);
-    };
-    return userId;
-};
-
-/**
  * 対話モード（無理矢理）
  */
 async function interactive() {
@@ -189,7 +174,7 @@ program
         console.log('  ・取得件数を省略すると、20件取得します');
     });
 
-// ユーザータイムライン表示
+// ユーザー表示
 program
     .command('user [userId] [counts]')
     .alias('u')
@@ -197,7 +182,7 @@ program
     .description('ユーザーのツイート一覧を表示します')
     .action(async (userId, counts) => {
         counts = (!counts || counts < 1 || counts > 200) ? 20 : counts;
-        const screenName = getScreenName(userId, false);
+        const screenName = api.getScreenName(displayingTweets, userId, true);
         const timeline = await api.getUserTimeline(token, screenName, counts).catch(err => console.error(err));
         displayingTweets = (timeline) ? timeline : displayingTweets;
     })
@@ -279,7 +264,7 @@ program
     .option('-r, --remove', 'フォローを解除します')
     .action(async (userId, options) => {
         const isRemoved = (options.remove) ? true : false;
-        const screenName = getScreenName(userId, true);
+        const screenName = api.getScreenName(displayingTweets, userId, false);
         if (!screenName) return;
         await api.follow(token, screenName, isRemoved).catch(err => console.error(err));
         delete options.remove;
@@ -299,7 +284,7 @@ program
     .option('-r, --remove', 'ブロックを解除します')
     .action(async (userId, options) => {
         const isRemoved = (options.remove) ? true : false;
-        const screenName = getScreenName(userId, true);
+        const screenName = api.getScreenName(displayingTweets, userId, false);
         if (!screenName) return;
         await api.block(token, screenName, isRemoved).catch(err => console.error(err));
         delete options.remove;
@@ -319,7 +304,7 @@ program
     .option('-r, --remove', 'ミュートを解除します')
     .action(async (userId, options) => {
         const isRemoved = (options.remove) ? true : false;
-        const screenName = getScreenName(userId, true);
+        const screenName = api.getScreenName(displayingTweets, userId, false);
         if (!screenName) return;
         await api.mute(token, screenName, isRemoved).catch(err => console.error(err));
         delete options.remove;

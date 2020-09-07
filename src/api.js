@@ -348,18 +348,16 @@ function getTweetId(tl, index) {
 };
 
 /**
- * ツイートのインデックスからユーザーのスクリーンネームを取得する
- * @param  {Array}   tl          タイムライン
- * @param  {Number}  index       ツイートのインデックス
- * @param  {Boolean} isGetRtUser RTだった場合、RT元のユーザーを取得する
- * @return {String}              スクリーンネーム
+ * ツイートのインデックスからユーザーのスクリーンネームを取得
+ * @param  {Array}   tl             タイムライン
+ * @param  {*}       index          ツイートのインデックス/スクリーンネーム
+ * @param  {Boolean} isGetRtUser    RTだった場合、RT元のユーザーを取得するか
+ * @return {String}                 スクリーンネーム
  */
-function getUserId(tl, index, isGetRtUser) {
-    // 数値か検証
-    if (isNaN(index)) {
-        console.error(' Error '.bgRed + ' インデックスが不正です'.brightRed);
-        return '';
-    };
+function getScreenName(tl, index, isGetRtUser) {
+    // 数値以外の場合はそのまま返す
+    if (isNaN(index)) return index;
+    index = Number(index);
     // インデックスが存在するか検証
     if (index > tl.length - 1) {
         console.error(' Error '.bgRed + ' ツイートが存在しません'.brightRed);
@@ -384,5 +382,5 @@ module.exports = {
     getUserTimeline,
     searchTweet,
     getTweetId,
-    getUserId
+    getScreenName
 };
