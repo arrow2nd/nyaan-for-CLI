@@ -1,7 +1,7 @@
 'use strict';
 const chalk = require('chalk');
 const moment = require('moment');
-const eaw = require('eastasianwidth');
+const meaw = require('meaw');
 const util = require('./util.js');
 const color = require('../config/color.json');
 
@@ -189,7 +189,7 @@ function createFotter(tweet) {
     const start = tweet.source.indexOf('>') + 1;
     const end = tweet.source.indexOf('</a>');
     let via = `via ${tweet.source.slice(start, end)}  `;
-    textCount += eaw.length(via);
+    textCount += meaw.computeWidth(via);
     via = chalk.hex(color.ui.via)(via);
 
     // 投稿時刻

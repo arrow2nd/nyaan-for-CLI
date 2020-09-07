@@ -4,7 +4,8 @@ const path = require('path');
 const chalk = require('chalk');
 const readline = require('readline');
 const split = require('graphemesplit');
-const eaw = require('eastasianwidth');
+const meaw = require('meaw');
+
 const color = require('../config/color.json');
 
 /**
@@ -108,7 +109,7 @@ function sortTag(array, key) {
  */
 function insert(text, length, add) {
     let start = 0, result = '', rest = text;    
-    while (length < eaw.length(rest)) {
+    while (length < meaw.computeWidth(rest)) {
         result += strCat(text, start, length, false); // 範囲切り出し
         start = result.length;                        // 次の切り出し位置をズラす
         result += add;                                // 指定の文字を追加
@@ -134,7 +135,7 @@ function strCat(text, start, length, mode) {
         const value = words[index];
         if (!value) {
             break;
-        } else if (eaw.length(value) == 2) {
+        } else if (meaw.computeWidth(value) == 2) {
             len--;
         };
         result += value;

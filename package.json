@@ -10,9 +10,10 @@
   "dependencies": {
     "chalk": "^4.1.0",
     "commander": "^5.1.0",
-    "eastasianwidth": "^0.2.0",
     "graphemesplit": "^2.4.0",
+    "meaw": "^4.3.0",
     "moment": "^2.26.0",
+    "node-emoji-new": "^3.4.5",
     "oauth": "^0.9.15",
     "twitter": "^1.7.1"
   }

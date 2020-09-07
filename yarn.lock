@@ -118,11 +118,6 @@ delayed-stream@~1.0.0:
   resolved "https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz#df3ae199acadfb7d440aaae0b29e2272b24ec619"
   integrity sha1-3zrhmayt+31ECqrgsp4icrJOxhk=
 
-eastasianwidth@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/eastasianwidth/-/eastasianwidth-0.2.0.tgz#696ce2ec0aa0e6ea93a397ffcf24aa7840c827cb"
-  integrity sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==
-
 ecc-jsbn@~0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz#3a83a904e54353287874c564b7549386849a98c9"
@@ -251,6 +246,16 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
+lodash.toarray@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/lodash.toarray/-/lodash.toarray-4.4.0.tgz#24c4bfcd6b2fba38bfd0594db1179d8e9b656561"
+  integrity sha1-JMS/zWsvuji/0FlNsRedjptlZWE=
+
+meaw@^4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/meaw/-/meaw-4.3.0.tgz#96d74682bb9492623bd3c5d701ad37ba7a561091"
+  integrity sha512-LqrSSga9IZHJzqAQD0KkGQqeXwqgNsM3X+eHAlf/5h1DqyFdP2Q30Tx8Nx2TCzjoibxmQL/JsUtSGwdpZHvuUg==
+
 mime-db@1.44.0:
   version "1.44.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.44.0.tgz#fa11c5eb0aca1334b4233cb4d52f10c5a6272f92"
@@ -267,6 +272,13 @@ moment@^2.26.0:
   version "2.26.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.26.0.tgz#5e1f82c6bafca6e83e808b30c8705eed0dcbd39a"
   integrity sha512-oIixUO+OamkUkwjhAVE18rAMfRJNsNe/Stid/gwHSOfHrOtw9EhAY2AHvdKZ/k/MggcYELFCJz/Sn2pL8b8JMw==
+
+node-emoji-new@^3.4.5:
+  version "3.4.5"
+  resolved "https://registry.yarnpkg.com/node-emoji-new/-/node-emoji-new-3.4.5.tgz#09a168a69e467c56cd92b591b2afc82b3ed8489b"
+  integrity sha512-opp9oURoZsxbcHFYzOQEaArVAkut9TaiaTu2DnX6+OyXMqvDXb57G5YGw+HWBD3YIG96Yr3MPvPQIzBemSheKg==
+  dependencies:
+    lodash.toarray "^4.4.0"
 
 oauth-sign@~0.9.0:
   version "0.9.0"
