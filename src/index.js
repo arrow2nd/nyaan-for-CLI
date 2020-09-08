@@ -249,7 +249,7 @@ program
     .description('いいねとリツイートをします')
     .action(async (index) => {
         const tweetId = api.getTweetId(displayingTweets, index);
-        if (!tweetId) retuen;
+        if (!tweetId) return;
         await api.favorite(token, tweetId, false).catch(err => console.error(err));
         await api.retweet(token, tweetId, false).catch(err => console.error(err));
     });
