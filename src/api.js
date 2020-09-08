@@ -238,7 +238,10 @@ async function mute(token, screenName, isRemoved) {
 async function getTimeline(token, mentionMode, count) {
     const client = createClient(token);
     const type = (mentionMode) ? 'mentions_timeline' : 'home_timeline';
-    let param = { count: count };
+    let param = {
+        tweet_mode: 'extended',
+        count: count
+    };
     // TL取得モードの場合はリプライを含めない
     if (!mentionMode) param.exclude_replies = true;
     // タイムライン取得
@@ -262,7 +265,10 @@ async function getTimeline(token, mentionMode, count) {
  */
 async function getUserTimeline(token, userId, count) {
     const client = createClient(token);
-    let param = { count: count };
+    let param = {
+        tweet_mode: 'extended',
+        count: count
+    };
     // ユーザーIDがあれば追加
     if (userId) param.screen_name = userId.replace(/@|＠/, '');
     // タイムライン取得
@@ -310,8 +316,13 @@ async function getUserLookup(token, userId) {
  */
 async function searchTweet(token, keyword, count) {
     const client = createClient(token);
+    let param = {
+        q: keyword,
+        tweet_mode: 'extended',
+        count: count
+    };
     // ツイートを検索
-    const results = await client.get('search/tweets', {q: `${keyword}  exclude:retweets`, count: count}).catch(err => util.showAPIErrorMsg(err));
+    const results = await client.get('search/tweets', param).catch(err => util.showAPIErrorMsg(err));
     const tweets = results.statuses;
     // データがあるかチェック
     if (!tweets || !tweets.length) {
@@ -370,6 +381,18 @@ function getScreenName(tl, index, isGetRtUser) {
     return (isGetRtUser && tweet.retweeted_status) ? tweet.retweeted_status.user.screen_name : tweet.user.screen_name;
 };
 
+/**
+ * ツイートのURLを表示
+ * @param {Array} tl    タイムライン
+ * @param {Number} index ツイートのインデックス
+ */
+function createURL(tl, index) {
+    const screenName = getScreenName(tl, index, false);
+    const tweetId = getTweetId(tl, index);
+    if (!screenName || !tweetId) return;
+    console.log(`https://twitter.com/${screenName}/status/${tweetId}`);
+};
+
 module.exports = {
     loadConfig,
     tweetPost,
@@ -383,5 +406,6 @@ module.exports = {
     getUserTimeline,
     searchTweet,
     getTweetId,
-    getScreenName
+    getScreenName,
+    createURL
 };

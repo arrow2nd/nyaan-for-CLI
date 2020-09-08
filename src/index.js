@@ -314,6 +314,14 @@ program
         console.log('  ・指定したツイートがRTの場合、RTしたユーザーが指定されます');
     });
 
+// ツイートのURLを表示
+program
+    .command('URL <index>')
+    .alias('U')
+    .usage('<ツイートの番号>')
+    .description('対象ツイートのURLを表示します')
+    .action((index) => api.createURL(displayingTweets, index))
+
 // 設定の削除
 program
     .command('init')

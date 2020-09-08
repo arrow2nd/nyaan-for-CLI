@@ -125,7 +125,7 @@ function createHeader(user) {
  */
 function formatTweet(tweet) {
     const width = process.stdout.columns;
-    const post = tweet.text;
+    const post = tweet.full_text;
     let result = '';
     let posts = post.split('\n');
 
