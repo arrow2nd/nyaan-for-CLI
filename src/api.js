@@ -167,7 +167,7 @@ async function retweet(token, tweetId, isRemoved) {
     const msg = (isRemoved) ? ' Un-retweeted ' : ' Retweeted ';
     const width = process.stdout.columns - msg.length - 3;
     const text = util.strCat(util.optimizeText(tweet.text), 0, width, true);
-    util.info(chalk.black.bgGHex(color.ui.rt)(msg), text);
+    util.info(chalk.black.bgHex(color.ui.rt)(msg), text);
 };
 
 /**
