@@ -24,7 +24,7 @@ function showUserInfo(user, connections) {
     const url = user.url;
     // アカウント作成日
     let createdAt = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
-    createdAt =  `  created at ${createdAt}`;
+    createdAt =  `created at ${createdAt}`;
     // フォロー数とフォローされているか
     let follow = user.friends_count;
     follow = (connections.followed_by) ? `${follow} ${chalk.hex('#2196F3')('[followed by]')}` : follow;
@@ -44,7 +44,7 @@ function showUserInfo(user, connections) {
     console.log(`       URL: ${url}`);
     console.log(`    follow: ${follow}`);
     console.log(`  follower: ${follower}`);
-    console.log(' '.repeat(width - createdAt.length) + chalk.hex(color.ui.accent)(createdAt));
+    console.log(' '.repeat(width - createdAt.length - 1) + chalk.hex(color.ui.accent)(createdAt));
     util.drawHr(false);
 };
 
