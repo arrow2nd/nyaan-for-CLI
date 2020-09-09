@@ -85,12 +85,16 @@ async function tweetPost(token, tweetText, mediaPaths, replyToPostId) {
  */
 async function upload(token, mediaPaths) {
     const client = createClient(token);
-    const paths = mediaPaths.split(',');
-    const pathLength = (paths.length > 4) ? 4 : paths.length;
+    const paths = mediaPaths.split(',').map((p) => { return p.trim() });
     let mediaIds = '';
 
-    for (let i = 0; i < pathLength; i++) {
-        const filePath = paths[i].trim();
+    // 画像の枚数をチェック
+    if (paths.length > 4) {
+        util.info('e', '画像の枚数が多すぎます（最大4枚）');
+        return;
+    };
+
+    for (let filePath of paths) {
         // 拡張子をチェック
         const ext = path.extname(filePath).toLowerCase();
         if (ext != '.jpg' && ext != '.jpeg' && ext != '.png' && ext != '.gif') {
@@ -136,7 +140,7 @@ async function deleteTweet(token, tweetId) {
 
 /**
  * いいね
- * @param {Object} token      トークンオブジェクト
+ * @param {Object}  token     トークンオブジェクト
  * @param {String}  tweetId   ツイートID
  * @param {Boolean} isRemoved いいねを取り消すかどうか
  */
@@ -390,7 +394,7 @@ function createURL(tl, index) {
     const screenName = getScreenName(tl, index, false);
     const tweetId = getTweetId(tl, index);
     if (!screenName || !tweetId) return;
-    console.log(`https://twitter.com/${screenName}/status/${tweetId}`);
+    util.info(chalk.black.bgHex(color.sys.info)(' URL '), `https://twitter.com/${screenName}/status/${tweetId}`);
 };
 
 module.exports = {

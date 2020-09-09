@@ -133,10 +133,17 @@ program
     .alias('dtw')
     .usage('<ツイートの番号>')
     .description('ツイートを削除します')
-    .action(async (index) => {
-        const tweetId = api.getTweetId(displayingTweets, index);
-        if (!tweetId) return;
-        await api.deleteTweet(token, tweetId).catch(err => console.error(err));
+    .action(async (indexes) => {
+        const indexArray = indexes.split(',');
+        for (let index of indexArray) {
+            const tweetId = api.getTweetId(displayingTweets, index);
+            if (!tweetId) continue;
+            await api.deleteTweet(token, tweetId).catch(err => console.error(err));
+        };
+    })
+    .on('--help', () => {
+        console.log('\nTips:');
+        console.log('  ・ツイートの番号はカンマ区切りで複数指定することもできます');
     });
 
 // タイムライン表示
@@ -218,12 +225,19 @@ program
     .usage('<ツイートの番号>')
     .description('いいね！の操作をします')
     .option('-r, --remove', 'いいねを取り消します')
-    .action(async (index, options) => {
+    .action(async (indexes, options) => {
         const isRemoved = (options.remove) ? true : false;
-        const tweetId = api.getTweetId(displayingTweets, index);
-        if (!tweetId) return;
-        await api.favorite(token, tweetId, isRemoved).catch(err => console.error(err));
+        const indexArray = indexes.split(',');
+        for (let index of indexArray) {
+            const tweetId = api.getTweetId(displayingTweets, index);
+            if (!tweetId) continue;
+            await api.favorite(token, tweetId, isRemoved).catch(err => console.error(err));
+        };
         delete options.remove;
+    })
+    .on('--help', () => {
+        console.log('\nTips:');
+        console.log('  ・ツイートの番号はカンマ区切りで複数指定することもできます');
     });
 
 // リツイートの操作
@@ -233,12 +247,19 @@ program
     .usage('<ツイートの番号>')
     .description('リツイートの操作をします')
     .option('-r, --remove', 'リツイートを取り消します')
-    .action(async (index, options) => {
+    .action(async (indexes, options) => {
         const isRemoved = (options.remove) ? true : false;
-        const tweetId = api.getTweetId(displayingTweets, index);
-        if (!tweetId) retuen;
-        await api.retweet(token, tweetId, isRemoved).catch(err => console.error(err));
+        const indexArray = indexes.split(',');
+        for (let index of indexArray) {
+            const tweetId = api.getTweetId(displayingTweets, index);
+            if (!tweetId) continue;
+            await api.retweet(token, tweetId, isRemoved).catch(err => console.error(err));
+        };
         delete options.remove;
+    })
+    .on('--help', () => {
+        console.log('\nTips:');
+        console.log('  ・ツイートの番号はカンマ区切りで複数指定することもできます');
     });
 
 // いいね＆リツイート
@@ -247,11 +268,18 @@ program
     .alias('fr')
     .usage('<ツイートの番号>')
     .description('いいねとリツイートをします')
-    .action(async (index) => {
-        const tweetId = api.getTweetId(displayingTweets, index);
-        if (!tweetId) return;
-        await api.favorite(token, tweetId, false).catch(err => console.error(err));
-        await api.retweet(token, tweetId, false).catch(err => console.error(err));
+    .action(async (indexes) => {
+        const indexArray = indexes.split(',');
+        for (let index of indexArray) {
+            const tweetId = api.getTweetId(displayingTweets, index);
+            if (!tweetId) continue;
+            await api.favorite(token, tweetId, false).catch(err => console.error(err));
+            await api.retweet(token, tweetId, false).catch(err => console.error(err));
+        };
+    })
+    .on('--help', () => {
+        console.log('\nTips:');
+        console.log('  ・ツイートの番号はカンマ区切りで複数指定することもできます');
     });
 
 // フォローの操作
