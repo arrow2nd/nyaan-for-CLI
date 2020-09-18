@@ -1,74 +1,19 @@
 'use strict';
-const fs = require('fs');
-const path = require('path');
-const chalk = require('chalk');
+const fs       = require('fs');
+const path     = require('path');
+const meaw     = require('meaw');
+const chalk    = require('chalk');
 const readline = require('readline');
-const split = require('graphemesplit');
-const meaw = require('meaw');
-const color = require('../config/color.json');
+const split    = require('graphemesplit');
+const color    = loadColorData();
 
-/**
- * メッセージを表示
- * @param {String|Object} type メッセージの種類、タイトル
- * @param {String}        text 内容
- */
-function info(type, text) {
-    let title;
-    // タイトル
-    switch (type) {
-        case 'e':
-            title = chalk.black.bgHex(color.sys.error)(' Error ');
-            break;
-        case 'i':
-            title = chalk.black.bgHex(color.sys.info)(' Info ');
-            break;
-        case 's':
-            title = chalk.black.bgHex(color.sys.success)(' Success ');
-            break;
-        default:
-            title = type
-    };
-    // メッセージ
-    switch (type) {
-        case 'e':
-            text = chalk.hex(color.sys.error)(text);
-            break;
-        case 'i':
-            text = chalk.hex(color.sys.info)(text);
-            break;
-        case 's':
-            text = chalk.hex(color.sys.success)(text);
-            break;
-    };
-    console.log(title + ' ' + text);
-};
-
-/**
- * ファイルをテキストとして読み込む
- * @param  {String} fpath パス
- * @return {String}       ファイルの内容
- */
-function loadTextFile(fpath) {
-    // 存在するかチェック
-    if (!fs.existsSync(fpath)) {
-        info('e', `ファイルが見つかりません(${fpath})`);
-        return;
-    };
-    return fs.readFileSync(fpath, 'utf8');
-};
-
-/**
- * 水平線を描画する
- * @param {boolean} hasPutSpace 左右に1スペースを空けるか
- */
-function drawHr(hasPutSpace) {
-    const width = process.stdout.columns;
-    const hr = (hasPutSpace) ? ' ' + chalk.grey('-'.repeat(width - 2)) : '-'.repeat(width);
-    console.log(hr);
-};
+//-------------------------------------------------------------------------
+//  コンソール入出力
+//-------------------------------------------------------------------------
 
 /**
  * コンソールからの入力を受け付ける
+ * 
  * @return {Array} 文字列配列
  */
 function readlineSync() {
@@ -86,20 +31,144 @@ function readlineSync() {
 };
 
 /**
- * 文字列に指定した間隔で文字を挿入（ちょっと怪しい）
+ * メッセージを表示
+ * 
+ * @param {String|Object} type メッセージの種類・タイトル
+ * @param {String}        text 内容
+ */
+function info(type, text) {
+    let title;
+
+    // タイトル
+    switch (type) {
+        case 'e':
+            title = chalk.black.bgHex(color.sys.error)(' Error ');
+            break;
+        case 'i':
+            title = chalk.black.bgHex(color.sys.info)(' Info ');
+            break;
+        case 's':
+            title = chalk.black.bgHex(color.sys.success)(' Success ');
+            break;
+        default:
+            title = type
+    };
+
+    // メッセージ
+    switch (type) {
+        case 'e':
+            text = chalk.hex(color.sys.error)(text);
+            break;
+        case 'i':
+            text = chalk.hex(color.sys.info)(text);
+            break;
+        case 's':
+            text = chalk.hex(color.sys.success)(text);
+            break;
+    };
+
+    console.log(title + ' ' + text);
+};
+
+/**
+ * 水平線を描画する
+ * 
+ * @param {boolean} hasPutSpace 左右に1スペースを空けるか
+ */
+function drawHr(hasPutSpace) {
+    const width = process.stdout.columns;
+    const hr = (hasPutSpace) ? ' ' + chalk.grey('-'.repeat(width - 2)) : '-'.repeat(width);
+    console.log(hr);
+};
+
+/**
+ * TwitterAPIのエラー内容を表示
+ * 
+ * @param {Object} error エラーオブジェクト
+ */
+function showAPIErrorMsg(error) {
+    const err = {
+        32: '処理を完了できませんでした',
+        34: '見つかりませんでした',
+        64: 'アカウントが凍結されています',
+        88: '読み込み回数の制限に達しました',
+        89: '無効なアクセストークンです',
+        130: '現在Twitterへのアクセスが集中しています',
+        131: 'Twitter側で不明なエラーが発生しました',
+        139: '既にいいねしたツイートです',
+        144: '該当するツイートが見つかりませんでした',
+        161: 'フォローに失敗しました',
+        179: 'ツイートを閲覧する権限がありません',
+        183: '他のユーザーのツイートは削除できません',
+        185: '投稿回数の制限に達しました',
+        187: 'ツイートが重複しています',
+        327: '既にリツイートしたツイートです'
+    };
+
+    // オブジェクトが無い場合
+    if (!error[0]) {
+        info('e', 'エラー内容が取得できませんでした');
+        return;
+    };
+
+    // エラー内容をリストから取得
+    const code = error[0].code;
+    let msg = err[code];    
+
+    // リスト内に該当するエラーが無い場合、エラーオブジェクトのメッセージを代入
+    if (!msg) msg = error[0].message;
+
+    info('e', `${msg}(${code})`);
+};
+
+/**
+ * Commanderのエラー内容を表示
+ * 
+ * @param {Object} error エラーオブジェクト
+ */
+function showCMDErrorMsg(error) {
+    const ignore = [
+        'commander.unknownCommand',
+        'commander.unknownOption' ,
+        'commander.missingArgument'
+    ];
+
+    // 無視する
+    if (error.exitCode == 0) return;
+
+    // リストに該当するエラーの場合無視する
+    for (let code of ignore) {
+        if (code == error.code) {
+            return;
+        };
+    };
+
+    console.error(error);
+    process.exit(1);
+};
+
+//-------------------------------------------------------------------------
+//  文字列操作
+//-------------------------------------------------------------------------
+
+/**
+ * 文字列に指定した間隔で文字を挿入
+ * 
  * @param  {String} text   文字列
  * @param  {Number} length 挿入する間隔（半角を1とした表示幅）
  * @param  {String} add    挿入する文字
  * @return {String}        編集後の文字列
  */
 function insert(text, length, add) {
-    let start = 0, result = '', rest = text;    
+    let start = 0, result = '', rest = text;
+
     while (length < meaw.computeWidth(rest)) {
-        result += strCat(text, start, length, false); // 範囲切り出し
-        start = result.length;                        // 次の切り出し位置をズラす
-        result += add;                                // 指定の文字を追加
-        rest = text.slice(start);                     // 残り
+        result += strCat(text, start, length, false);   // 範囲切り出し
+        start = result.length;                          // 次の切り出し位置をズラす
+        result += add;                                  // 指定の文字を追加
+        rest = text.slice(start);                       // 残り
     };
+
     // 残りの文字列を結合
     result += rest;
     return result;
@@ -107,6 +176,7 @@ function insert(text, length, add) {
 
 /**
  * 文字の表示幅を考慮して範囲を切り出す
+ * 
  * @param  {String}  text   文字列
  * @param  {Number}  start  開始位置
  * @param  {Number}  length 切り出す長さ
@@ -114,8 +184,10 @@ function insert(text, length, add) {
  * @return {String}         切り出した文字列
  */
 function strCat(text, start, length, mode) {
-    let index, len, result = '';
+    let index, len;
+    let result = '';
     const words = split(text);
+
     for (index = start, len = length; len > 0; index++, len--) {
         const value = words[index];
         if (!value) {
@@ -125,6 +197,7 @@ function strCat(text, start, length, mode) {
         };
         result += value;
     };
+
     // 文末に"…"を追加
     if (mode && text.length != index) result += '…';
     return result;
@@ -132,6 +205,7 @@ function strCat(text, start, length, mode) {
 
 /**
  * 文字列を最適化する
+ * 
  * @param  {String} text 文字列
  * @return {String}      編集後の文字列
  */
@@ -140,7 +214,8 @@ function optimizeText(text) {
 };
 
 /**
- * 英数字を装飾文字に変換する
+ * 英数字を装飾文字に変換
+ * 
  * @param  {Object} options オプションオブジェクト
  * @param  {String} text    文字列
  * @return {String}         編集後の文字列
@@ -163,6 +238,7 @@ function decorateCharacter(options, text) {
             result += word;
             continue;
         };
+
         // 装飾を反映
         let codePoint = word.codePointAt(0);
         if (word.match(/[A-Z]/)) {
@@ -172,76 +248,103 @@ function decorateCharacter(options, text) {
         } else {
             codePoint += style.degits;
         };
+
         // 出力
         result += String.fromCodePoint(codePoint);
     };
+
     return result;
 };
 
+//-------------------------------------------------------------------------
+//  ファイル操作
+//-------------------------------------------------------------------------
+
 /**
- * TwitterAPIのエラー内容を表示
- * @param {Object} error エラーオブジェクト
+ * 設定フォルダまでのパスを取得
+ * 
+ * @return {String} パス
  */
-function showAPIErrorMsg(error) {
-    const err = {
-        32: '処理を完了できませんでした',
-        34: '見つかりませんでした',
-        64: 'アカウントが凍結されています',
-        88: '読み込み回数の制限に達しました',
-        89: '無効なアクセストークンです',
-        130: '現在Twitterへのアクセスが集中しています',
-        131: 'Twitter側で不明なエラーが発生しました',
-        139: '既にいいねしたツイートです',
-        144: '該当するツイートが見つかりませんでした',
-        161: 'フォローに失敗しました',
-        179: 'ツイートを閲覧する権限がありません',
-        183: '他のユーザーのツイートは削除できません',
-        185: '投稿回数の制限に達しました',
-        187: 'ツイートが重複しています',
-        327: '既にリツイートしたツイートです'
-    };
-    // オブジェクトが無い場合
-    if (!error[0]) {
-        info('e', 'エラー内容が取得できませんでした');
+function getDirPath() {
+    const homePath = process.env[(process.platform == "win32") ? "USERPROFILE" : "HOME"];
+    return path.join(homePath, './.config/tw-nyaan');
+};
+
+/**
+ * ファイルをテキストとして読み込む
+ * 
+ * @param  {String} fpath パス
+ * @return {String}       ファイルの内容
+ */
+function loadTextFile(fpath) {
+    // 存在するかどうか
+    if (!fs.existsSync(fpath)) {
+        info('e', `ファイルが見つかりません(${fpath})`);
         return;
     };
-    // エラー内容をリストから取得
-    const code = error[0].code;
-    let msg = err[code];    
-    // リスト内に該当するエラーが無い場合、エラーオブジェクトのメッセージを代入
-    if (!msg) msg = error[0].message;
 
-    info('e', `${msg}(${code})`);
+    return fs.readFileSync(fpath, 'utf8');
 };
 
 /**
- * Commanderのエラー内容を表示
- * @param {Object} error エラーオブジェクト
+ * 色データ読み込み
  */
-function showCMDErrorMsg(error) {
-    const ignore = [
-        'commander.unknownCommand',
-        'commander.unknownOption' ,
-        'commander.missingArgument'
-    ];
-    // 無視する
-    if (error.exitCode == 0) return;
-    // リストに該当するエラーの場合無視する
-    for (let code of ignore) {
-        if (code == error.code) {
-            return;
-        };
+function loadColorData() {
+    const dirPath   = getDirPath();
+    const colorPath = path.join(dirPath, './color.json');
+
+    // ファイルがなければ作成する
+    if (!fs.existsSync(colorPath)) {
+        createColorFile();
     };
-    console.error(error);
-    process.exit(1);
+
+    return JSON.parse(fs.readFileSync(colorPath));
 };
 
 /**
- * 設定データ削除
+ * 色データ保存
+ */
+function createColorFile() {
+    const dirPath = getDirPath();
+    const color = {
+        "ui": {
+            "accent": "#01579B",
+            "fav": "#F06292",
+            "rt": "#4DB6AC",
+            "reply": "#4DD0E1",
+            "hash": "#64B5F6",
+            "via": "#2c73ab",
+            "verified": "#1E88E5",
+            "private": "#787878",
+            "tweet": "#29B6F6",
+            "follow": "#1E88E5",
+            "block": "#ef5350",
+            "mute": "#FFF176"
+        },
+        "sys": {
+            "error": "#e57373",
+            "info": "#42A5F5",
+            "success": "#81C784"
+        }
+    };
+
+    // ディレクトリが無ければ作成する
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    };
+
+    // 保存
+    fs.writeFileSync(path.join(dirPath, './color.json'), JSON.stringify(color));
+};
+
+/**
+ * 設定を初期化
  */
 function deleteConfig() {
+    const dirPath = getDirPath();
+
     try {
-        fs.unlinkSync(path.join(__dirname, '../config/config.json'));
+        fs.unlinkSync(path.join(dirPath, './config.json'));
         info('s', '削除しました');
     } catch (err) {
         console.error(err);
@@ -251,14 +354,16 @@ function deleteConfig() {
 
 module.exports = {
     info,
-    loadTextFile,
-    drawHr,
     readlineSync,
+    drawHr,
+    showAPIErrorMsg,
+    showCMDErrorMsg,
     insert,
     strCat,
     optimizeText,
     decorateCharacter,
-    showAPIErrorMsg,
-    showCMDErrorMsg,
+    getDirPath,
+    loadTextFile,
+    loadColorData,
     deleteConfig
 };

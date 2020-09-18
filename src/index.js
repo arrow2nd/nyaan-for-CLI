@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 'use strict';
-const program = require('commander');
-const api = require('./api.js');
-const util = require('./util.js');
+const program     = require('commander');
+const api         = require('./api.js');
+const util        = require('./util.js');
+const oauth       = require('./oauth.js');
 const packageJson = require("../package.json");
 
 let token = {};
@@ -14,25 +15,31 @@ let displayingTweets = [];
 
 /**
  * ツイート/リプライ
+ * 
  * @param {String} tweetId リプライ先のツイートID
  * @param {String} text    ツイート文
  * @param {Array}  options コマンドのオプション
  */
 async function tweet(tweetId, text, options) {
     const path = options.media || '';
+
     // テキストファイルを読み込む
     if (options.load) {
         text = util.loadTextFile(options.load);
         if (!text) return;
     };
+
     // 空文字の場合にゃーんに置き換える
     text = (!text && !path) ? 'にゃーん' : text;
+
     // 装飾文字
     if (options.bold || options.italic || options.serifbold || options.serifitaric || options.script) {
         text = util.decorateCharacter(options, text);
     };
+
     // ツイート
     await api.tweetPost(token, text, path, tweetId).catch(err => console.error(err));
+
     // プロパティを削除
     delete options.bold;
     delete options.italic;
@@ -48,13 +55,17 @@ async function tweet(tweetId, text, options) {
  */
 async function interactive() {
     let array = '';
+
     // タイムライン表示
     displayingTweets = await api.getTimeline(token, false, 20).catch(err => console.error(err));    
+
     while (1) {
         // 入力を待つ
         array = await util.readlineSync().catch(err => console.error(err));
+
         // 空エンターでTL更新
         if (!array[0]) array[0] = 'tl';
+
         // コマンドを解析
         try {
             await program.parseAsync(array, { from: 'user' });
@@ -368,7 +379,7 @@ program
 //-------------------------------------------------------------------------
 
 (async () => {
-    token = await api.loadConfig();
+    token = await oauth.loadToken();
     // コマンドがあれば解析、なければ対話型で実行
     if (process.argv[2]) {
         try {

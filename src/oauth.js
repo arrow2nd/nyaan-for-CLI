@@ -1,8 +1,8 @@
 'use strict';
-const fs = require('fs');
-const path = require('path');
+const fs    = require('fs');
+const path  = require('path');
 const OAuth = require('oauth').OAuth;
-const util = require('./util.js');
+const util  = require('./util.js');
 const nyaan = require('../config/nyaan.json');
 
 const oauth = new OAuth(
@@ -34,25 +34,27 @@ async function authenticate() {
     console.log('                                             /$$  | $$                              ');
     console.log('                                            |  $$$$$$/                              ');
     console.log('                                             \\______/                               \n');
+    
     util.info('i', '以下のURLにアクセスして、表示されたPINコードを入力してください\n');
 
-    // 認証URL
+    // 認証URL表示
     console.log(oauthToken.oauthURL + '\n');
-
-    // PIN
+    
+    // アクセストークンを取得
     const pin = await util.readlineSync();
-
-    // アクセストークンを保存
     const accessToken = await getAccessToken(oauthToken, pin).catch((err) => {
         util.info('e', err.data);
         process.exit(1);
     });
-    fs.writeFileSync(path.join(__dirname, '../config/config.json'), JSON.stringify(accessToken));
-    return;
+
+    // 保存
+    const dirPath = util.getDirPath();
+    fs.writeFileSync(path.join(dirPath, './config.json'), JSON.stringify(accessToken));
 };
 
 /**
  * 認証トークンを取得
+ * 
  * @return {Object} 認証トークンオブジェクト
  */
 function getOAuthToken() {
@@ -75,6 +77,7 @@ function getOAuthToken() {
 
 /**
  * アクセストークンを取得
+ * 
  * @param {Object} token 認証トークンオブジェクト
  * @param {Strung} pin   PINコード
  */
@@ -94,4 +97,19 @@ function getAccessToken(token, pin) {
     });
 };
 
-module.exports = { authenticate };
+/**
+ * 設定ファイル読み込み
+ */
+async function loadToken() {
+    const dirPath    = util.getDirPath();
+    const configPath = path.join(dirPath, './config.json');
+
+    // ファイルがなければ認証する
+    if (!fs.existsSync(configPath)) {
+        await authenticate();
+    };
+
+    return JSON.parse(fs.readFileSync(configPath));
+};
+
+module.exports = { loadToken };

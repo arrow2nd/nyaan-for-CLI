@@ -1,41 +1,37 @@
 'use strict';
-const chalk = require('chalk');
+const chalk  = require('chalk');
 const moment = require('moment');
-const meaw = require('meaw');
-const util = require('./util.js');
-const color = require('../config/color.json');
+const meaw   = require('meaw');
+const util   = require('./util.js');
+const color  = util.loadColorData();
 
 /**
  * ユーザーのプロフィールを表示
+ * 
  * @param {Object} user        ユーザーオブジェクト
  * @param {Object} connections ユーザーとの関係情報
  */
 function showUserInfo(user, connections) {
-    // 画面幅
-    const width = process.stdout.columns;
-    // ユーザー名・ID
-    const userName = createHeader(user);
-    // 場所
-    const location = util.optimizeText(user.location);
-    // 説明
-    let description = util.optimizeText(user.description);
+    const width      = process.stdout.columns;                  // 画面幅
+    const userName   = createHeader(user);                      // スクリーンネーム
+    const location   = util.optimizeText(user.location);        // 場所
+    const url        = user.url;                                // URL
+    const tweetCount = `${user.statuses_count} tweets`;         // ツイート数
+    let   description  = util.optimizeText(user.description);   // 説明文
+    let   follow       = user.friends_count;                    // フォロー
+    let   follower     = user.followers_count;                  // フォロワー
+    let   createdAt    = '';                                    // アカウント作成日
+
     description = util.insert(description, (width - 14), '\n            ');
-    // URL
-    const url = user.url;
-    // アカウント作成日
-    let createdAt = moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss');
-    createdAt =  `created at ${createdAt}`;
-    // フォロー数とフォローされているか
-    let follow = user.friends_count;
-    follow = (connections.followed_by) ? `${follow} ${chalk.hex('#2196F3')('[followed by]')}` : follow;
-    // フォロワー数とフォローしているか
-    let follower = user.followers_count;
-    follower = (connections.following) ? `${follower} ${chalk.hex('#2196F3')('[following]')}` : follower;
+    createdAt   = `created at ${moment(new Date(user.created_at)).format('YYYY/MM/DD HH:mm:ss')}`;
+
+    // フォロー・非フォロー状況
+    follow      = (connections.followed_by) ? `${follow} ${chalk.hex('#2196F3')('[followed by]')}` : follow;
+    follower    = (connections.following) ? `${follower} ${chalk.hex('#2196F3')('[following]')}` : follower;
+
     // ブロック・ミュート状況
     if (connections.blocking) follower += chalk.redBright.bold(' [blocking]');
     if (connections.muting)   follower += chalk.yellowBright.bold(' [muting]');
-    // ツイート数
-    const tweetCount = `${user.statuses_count} tweets`;
 
     // 表示
     console.log(`\n  ${userName}  ${chalk.hex(color.ui.tweet)(tweetCount)}\n`);
@@ -50,6 +46,7 @@ function showUserInfo(user, connections) {
 
 /**
  * ツイートを表示
+ * 
  * @param {Number} idx   インデックス
  * @param {Object} tweet ツイートオブジェクト
  */
@@ -75,7 +72,8 @@ function showTweet(idx, tweet) {
     if (rtByUser) console.log((isQT ? ' ' : '') + rtByUser);
     // Reply to
     if (rpToUser) console.log((isQT ? ' ' : '') + chalk.hex(color.ui.reply)(`Reply to @${rpToUser}`));
-    // ツイートを表示
+
+    // 表示
     console.log(header + '\n');
     console.log(postText);
     console.log(fotter);
@@ -88,10 +86,12 @@ function showTweet(idx, tweet) {
 
 /**
  * ツイートをまとめて表示
+ * 
  * @param {Array} tweets ツイートオブジェクト
  */
 function showTweets(tweets) {
     util.drawHr(false);
+
     for (let i = tweets.length - 1; i >= 0; i--) {
         const tweet = tweets[i]; 
         showTweet(i, tweet);
@@ -101,41 +101,43 @@ function showTweets(tweets) {
 
 /**
  * ヘッダーを作成
+ * 
  * @param  {Object} tweet ユーザーオブジェクト
  * @return {String}       ヘッダー
  */
 function createHeader(user) {
-    // ユーザー情報
     const userName = chalk.whiteBright.bold(util.optimizeText(user.name));
     const userId = chalk.hex('#9E9E9E')(` (@${user.screen_name})`);
     let badge = '';
+
     // 公式アカウント
     if (user.verified)  badge += chalk.hex(color.ui.verified)(' [verified]');
     // 鍵アカウント
     if (user.protected) badge += chalk.hex(color.ui.private)(' [private]');
 
-    const header = userName + userId + badge;
-    return header;
+    return userName + userId + badge;
 };
 
 /**
  * ツイート内容を整形
+ * 
  * @param  {Object} tweet ツイートオブジェクト
  * @return {String}       ツイート内容
  */
 function formatTweet(tweet) {
-    const width = process.stdout.columns;
-    const post = tweet.full_text;
-    let result = '';
-    let posts = post.split('\n');
+    const width  = process.stdout.columns;
+    const post   = tweet.full_text;
+    let   result = '';
+    let   posts  = post.split('\n');
 
-    // 一行に収まらない場合、折り返す
+    // 一行に収まらない場合折り返す
     for (let text of posts) {
         text = util.optimizeText(text);
         text = '  ' + util.insert(text, (width - 4), '\n  ');
         result += text + '\n';
     };
-    // メンションをハイライト (途中で改行されると無力)
+
+    // メンションを強調
     let mentions = tweet.entities.user_mentions;
     if (mentions) {
         result = result.replace(/@/g, '＠');
@@ -145,7 +147,8 @@ function formatTweet(tweet) {
             result = result.replace(regex, chalk.hex(color.ui.reply)(`@${text}`));
         };
     };
-    // ハッシュタグをハイライト (途中で改行されると無力)
+
+    // ハッシュタグを強調
     let hashtags = tweet.entities.hashtags;
     if (hashtags) {
         result = result.replace(/#/g, '＃');
@@ -161,6 +164,7 @@ function formatTweet(tweet) {
 
 /**
  * フッターを作成
+ * 
  * @param  {Object} tweet ツイートオブジェクト
  * @return {String}       フッター
  */
@@ -176,6 +180,7 @@ function createFotter(tweet) {
         textCount += favText.length + 1;
         favText = (tweet.favorited) ? ' ' + chalk.black.bgHex(color.ui.fav)(favText) : ' ' + chalk.hex(color.ui.fav)(favText);
     };
+    
     // RT
     const rtCount = tweet.retweet_count;
     let rtText = '';
