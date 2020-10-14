@@ -343,7 +343,7 @@ async function getUserLookup(token, userId) {
 async function searchTweet(token, keyword, count) {
     const client = createClient(token);
     let param = {
-        q: keyword,
+        q: `${keyword} -filter:retweets`,
         tweet_mode: 'extended',
         count: count
     };

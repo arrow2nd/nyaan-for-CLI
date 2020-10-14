@@ -216,7 +216,7 @@ program
     .command('search <keyword> [counts]')
     .alias('sh')
     .usage('<検索ワード> [取得件数]')
-    .description('キーワードからツイートを検索します')
+    .description('キーワードを含む、過去一週間のツイートを検索します')
     .action(async (keyword, counts) => {
         counts = (!counts || counts < 1 || counts > 100) ? 20 : counts;
         const tweets = await api.searchTweet(token, keyword, counts).catch(err => console.error(err));
