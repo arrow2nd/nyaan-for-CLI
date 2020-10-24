@@ -293,48 +293,12 @@ function loadColorData() {
     const dirPath   = getDirPath();
     const colorPath = path.join(dirPath, './color.json');
 
-    // ファイルがなければ作成する
+    // カスタムファイルがなければデフォルトを読み込む
     if (!fs.existsSync(colorPath)) {
-        createColorFile();
+        return JSON.parse(fs.readFileSync('./config/color.json'));
     };
 
     return JSON.parse(fs.readFileSync(colorPath));
-};
-
-/**
- * 色データ保存
- */
-function createColorFile() {
-    const dirPath = getDirPath();
-    const color = {
-        "ui": {
-            "accent": "#01579B",
-            "fav": "#F06292",
-            "rt": "#4DB6AC",
-            "reply": "#4DD0E1",
-            "hash": "#64B5F6",
-            "via": "#2c73ab",
-            "verified": "#1E88E5",
-            "private": "#787878",
-            "tweet": "#29B6F6",
-            "follow": "#1E88E5",
-            "block": "#ef5350",
-            "mute": "#FFF176"
-        },
-        "sys": {
-            "error": "#e57373",
-            "info": "#42A5F5",
-            "success": "#81C784"
-        }
-    };
-
-    // ディレクトリが無ければ作成する
-    if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
-    };
-
-    // 保存
-    fs.writeFileSync(path.join(dirPath, './color.json'), JSON.stringify(color));
 };
 
 /**

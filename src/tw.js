@@ -75,7 +75,7 @@ function showTweet(idx, tweet) {
 
     // 表示
     console.log(header + '\n');
-    console.log(postText);
+    console.log(chalk.hex(color.main.text)(postText));
     console.log(fotter);
     // 引用リツイート
     if (tweet.is_quote_status && tweet.quoted_status) {
@@ -106,8 +106,8 @@ function showTweets(tweets) {
  * @return {String}       ヘッダー
  */
 function createHeader(user) {
-    const userName = chalk.whiteBright.bold(util.optimizeText(user.name));
-    const userId = chalk.hex('#9E9E9E')(` (@${user.screen_name})`);
+    const userName = chalk.hex(color.main.title).bold(util.optimizeText(user.name));
+    const userId = chalk.hex(color.main.sub)(` (@${user.screen_name})`);
     let badge = '';
 
     // 公式アカウント
