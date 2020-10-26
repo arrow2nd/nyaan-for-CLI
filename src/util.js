@@ -295,7 +295,8 @@ function loadColorData() {
 
     // カスタムファイルがなければデフォルトを読み込む
     if (!fs.existsSync(colorPath)) {
-        return JSON.parse(fs.readFileSync('./config/color.json'));
+        const defaultPath = path.join(__dirname, '../config/color.json');
+        return JSON.parse(fs.readFileSync(defaultPath));
     };
 
     return JSON.parse(fs.readFileSync(colorPath));

@@ -1,6 +1,6 @@
 {
   "name": "nyaan",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "ねこによるねこのためのシンプルなTwitterクライアント",
   "main": "./src/index.js",
   "bin": {
