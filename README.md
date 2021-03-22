@@ -1,5 +1,8 @@
 # tw-nyaan🐾
 
+> CONSUMER_KEYを無効化した為、このツールは機能しません。 
+> [こちら](https://github.com/arrow2nd/twnyan)をご利用ください……
+
 ねこによるねこのためのシンプルなTwitterクライアントです。
 
 ![image](https://user-images.githubusercontent.com/44780846/92388930-09f74100-f153-11ea-81cc-2bfe9259c6a4.png)
